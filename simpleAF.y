@@ -41,6 +41,14 @@ int yylex(void);
 %%
 line  : expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
       | ID             {printf("IDentifier: %s\n", $1); exit(0);}
+      | IF             {printf("Recognized: if\n"); exit(0);}
+      | THEN             {printf("Recognized: then\n"); exit(0);}
+      | ELSE             {printf("Recognized: else\n"); exit(0);}
+      | FOR             {printf("Recognized: for\n"); exit(0);}
+      | TIMES             {printf("Recognized: times\n"); exit(0);}
+      | FROM             {printf("Recognized: from\n"); exit(0);}
+      | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
+      | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
       ;
 expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '-' expr  {$$ = $1 - $3;}
@@ -48,6 +56,7 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '/' expr  {$$ = $1 / $3;}
       | REAL            {$$ = $1;}
       ;
+
 
 %%
 
