@@ -21,8 +21,15 @@ int yylex(void);
        }
 
 %token <value>  NUM
-%token IF
 %token <lexeme> ID
+%token IF
+%token THEN
+%token ELSE
+%token FOR
+%token TIMES
+%token FROM
+%token INCREASING
+%token DECREASING
 
 %type <value> expr
 
