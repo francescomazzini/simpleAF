@@ -10,7 +10,7 @@ digit [0-9]
 letter [a-zA-Z]
 int {digit}+
 REAL {int}(\.{int})?
-STRING "{letter|digit}*"
+STRING \"({letter}|{digit})*\"
 ID {letter}({letter}|{digit})*  
 FRACTION {int}\/{int}
 
