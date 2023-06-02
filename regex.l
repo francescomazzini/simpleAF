@@ -4,17 +4,19 @@
 #include <string.h>
 #include <stdio.h>
 int TokenCount = 0;
-}
+%}
+
+
 
 digit [0-9]
 letter [a-zA-Z]
 int {digit}+
-real {int}{\.{int}}
+real {int}\.{int}
 fraction {int}\/{int}
 string \"{letter|digit}*\"
 date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
 
-id {letter}({letter}|{digit})*
+id {letter}({letter}|{digit})*  
 
 %%
 
@@ -36,3 +38,4 @@ decreasing {return DECREASING;}
 "/"     {return '/';}
 \n     {return '\n';}
 
+%%
