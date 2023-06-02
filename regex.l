@@ -6,17 +6,16 @@
 int TokenCount = 0;
 %}
 
-
-
 digit [0-9]
 letter [a-zA-Z]
 int {digit}+
-real {int}\.{int}
+NUM {int}(\.{int})?
+ID {letter}({letter}|{digit})*  
+
 fraction {int}\/{int}
 string \"{letter|digit}*\"
 date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
 
-id {letter}({letter}|{digit})*  
 
 %%
 
@@ -31,6 +30,12 @@ times {return TIMES;}
 from {return FROM;}
 increasing {return INCREASING;}
 decreasing {return DECREASING;}
+
+{NUM}   {yylval.value = atof(yytext);
+          return NUM;}
+
+{ID}    {yylval.lexeme = strdup(yytext);
+          return ID;}
 
 "+"     {return '+';}
 "-"     {return '-';}
