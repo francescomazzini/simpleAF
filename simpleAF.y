@@ -96,6 +96,22 @@ char* sumFractions(char* a, char* b){
 
 }
 
+char* subFractions(char* a, char* b){
+     int numA = stringToNumberStart(a);
+     int denA =stringToNumberEnd(a);
+     int numB = stringToNumberStart(b);
+     int denB = stringToNumberEnd(b);
+
+     int mcm = lcm(denA,denB);
+     int newNumA = mcm/denA* numA;
+     int newNumB = mcm/denB*numB;
+
+     int numAdded = newNumA-newNumB;
+
+     return numbersToString(numAdded,mcm);
+
+}
+
 
  
 %}
@@ -149,6 +165,7 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
 
       ;
 exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
+      | exprFraction '-' exprFraction  {$$ = subFractions($1,$3);}
       | FRACTION            {$$ = $1;}
       ;
 
