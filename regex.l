@@ -9,7 +9,7 @@ int TokenCount = 0;
 digit [0-9]
 letter [a-zA-Z]
 int {digit}+
-NUM {int}(\.{int})?
+REAL {int}(\.{int})?
 ID {letter}({letter}|{digit})*  
 
 fraction {int}\/{int}
@@ -31,8 +31,8 @@ from {return FROM;}
 increasing {return INCREASING;}
 decreasing {return DECREASING;}
 
-{NUM}   {yylval.value = atof(yytext);
-          return NUM;}
+{REAL}   {yylval.value = atof(yytext);
+          return REAL;}
 
 {ID}    {yylval.lexeme = strdup(yytext);
           return ID;}

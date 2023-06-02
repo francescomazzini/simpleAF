@@ -20,7 +20,7 @@ int yylex(void);
        float value;			//attribute of a token of type NUM
        }
 
-%token <value>  NUM
+%token <value>  REAL
 %token <lexeme> ID
 %token IF
 %token THEN
@@ -46,7 +46,7 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '-' expr  {$$ = $1 - $3;}
       | expr '*' expr  {$$ = $1 * $3;}
       | expr '/' expr  {$$ = $1 / $3;}
-      | NUM            {$$ = $1;}
+      | REAL            {$$ = $1;}
       ;
 
 %%
