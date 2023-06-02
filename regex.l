@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 int TokenCount = 0;
+char* removeFirstAndLasChar(const char* str);
 %}
 
 digit [0-9]
@@ -15,6 +16,7 @@ ID {letter}({letter}|{digit})*
 FRACTION {int}\/{int}
 
 date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
+
 
 
 %%
@@ -38,7 +40,7 @@ decreasing {return DECREASING;}
 {FRACTION}  {yylval.lexeme =strdup(yytext);
              return FRACTION;}
 
-{STRING}  {yylval.lexeme =strdup(yytext);
+{STRING}  {yylval.lexeme =removeFirstAndLasChar(strdup(yytext));
              return STRING;}
 
 {ID}    {yylval.lexeme = strdup(yytext);
@@ -50,4 +52,40 @@ decreasing {return DECREASING;}
 ":"     {return ':';}
 \n    {return '\n';}
 
+
+
 %%
+
+char* removeFirstAndLasChar(const char* str) {
+    size_t len = strlen(str);
+    
+    if (len <= 2) {
+        // If the string has 2 or fewer characters, return an empty string
+        char* result = (char*)malloc(1 * sizeof(char));
+        if (result == NULL) {
+            printf("Memory allocation failed.\n");
+            return NULL;
+        }
+        result[0] = '\0';
+        return result;
+    }
+    
+    // Calculate the length of the new string without the first and last characters
+    size_t newLen = len - 2;
+    
+    // Allocate memory for the new string
+    char* result = (char*)malloc((newLen + 1) * sizeof(char));
+    
+    // Check if memory allocation was successful
+    if (result == NULL) {
+        printf("Memory allocation failed.\n");
+        return NULL;
+    }
+    
+    // Copy the substring without the first and last characters to the new string
+    strncpy(result, str + 1, newLen);
+    result[newLen] = '\0';
+    
+    return result;
+}
+

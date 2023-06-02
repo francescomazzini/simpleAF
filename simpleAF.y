@@ -14,7 +14,97 @@ void yyerror(const char *s)
 
 int yylex(void);
 
-// Funzione per calcolare il massimo comune divisore (GCD) di due numeri
+char* concatenateStrings(const char* str1, const char* str2);
+char* divFractions(char* a, char* b);
+char* mulFractions(char* a, char* b);
+char* subFractions(char* a, char* b);
+char* sumFractions(char* a, char* b);
+float convertStringToFloat(char* a);
+char* simplifyFraction(int numerator, int denominator);
+char* numbersToString(int number1, int number2);
+int stringToNumberEnd(const char* str);
+int stringToNumberStart(const char* str);
+int lcm(int a, int b);
+int gcd(int a, int b);
+
+
+ 
+%}
+
+
+%union {
+       char* lexeme;			//name of an identifier
+       float value;			//attribute of a token of type NUM
+       }
+
+%token <lexeme> ID
+%token <value>  REAL
+%token <lexeme> STRING
+%token <lexeme> FRACTION
+%token IF
+%token THEN
+%token ELSE
+%token FOR
+%token TIMES
+%token FROM
+%token INCREASING
+%token DECREASING
+
+%type <value> expr
+%type <lexeme> exprFraction
+%type <lexeme> exprStrings
+
+%left '+' '-'
+%left '*' ':'
+
+%start line
+
+%%
+line  : expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
+      | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
+      | exprStrings '\n' {printf("Result: \"%s\"\n", $1); exit(0);}
+      | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
+      | ID             {printf("IDentifier: %s\n", $1); exit(0);}
+      | IF             {printf("Recognized: if\n"); exit(0);}
+      | THEN             {printf("Recognized: then\n"); exit(0);}
+      | ELSE             {printf("Recognized: else\n"); exit(0);}
+      | FOR             {printf("Recognized: for\n"); exit(0);}
+      | TIMES             {printf("Recognized: times\n"); exit(0);}
+      | FROM             {printf("Recognized: from\n"); exit(0);}
+      | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
+      | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
+      | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
+      
+      ;
+expr  : expr '+' expr  {$$ = $1 + $3;}
+      | expr '-' expr  {$$ = $1 - $3;}
+      | expr '*' expr  {$$ = $1 * $3;}
+      | expr ':' expr  {$$ = $1 / $3;}
+      | REAL            {$$ = $1;}
+
+      ;
+exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
+      | exprFraction '-' exprFraction  {$$ = subFractions($1,$3);}
+      | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
+      | exprFraction ':' exprFraction  {$$ = divFractions($1,$3);}
+      | FRACTION            {$$ = $1;}
+      ;
+
+exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
+        | STRING {$$ = $1;}
+        ;
+        
+
+%%
+
+
+#include "lex.yy.c"
+	
+int main(void)
+{
+  return yyparse();}
+
+  // Funzione per calcolare il massimo comune divisore (GCD) di due numeri
 int gcd(int a, int b) {
     if (b == 0)
         return a;
@@ -156,72 +246,24 @@ char* divFractions(char* a, char* b){
      return simplifyFraction(newNum,newDen);
 }
 
-
- 
-%}
-
-
-%union {
-       char* lexeme;			//name of an identifier
-       float value;			//attribute of a token of type NUM
-       }
-
-%token <lexeme> ID
-%token <value>  REAL
-%token <lexeme> STRING
-%token <lexeme> FRACTION
-%token IF
-%token THEN
-%token ELSE
-%token FOR
-%token TIMES
-%token FROM
-%token INCREASING
-%token DECREASING
-
-%type <value> expr
-%type <lexeme> exprFraction
-
-%left '+' '-'
-%left '*' ':'
-
-%start line
-
-%%
-line  : expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
-      | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
-      | STRING '\n'   {printf("String recognized: %s\n", $1); exit(0);}
-      | ID             {printf("IDentifier: %s\n", $1); exit(0);}
-      | IF             {printf("Recognized: if\n"); exit(0);}
-      | THEN             {printf("Recognized: then\n"); exit(0);}
-      | ELSE             {printf("Recognized: else\n"); exit(0);}
-      | FOR             {printf("Recognized: for\n"); exit(0);}
-      | TIMES             {printf("Recognized: times\n"); exit(0);}
-      | FROM             {printf("Recognized: from\n"); exit(0);}
-      | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
-      | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
-      | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
-      
-      ;
-expr  : expr '+' expr  {$$ = $1 + $3;}
-      | expr '-' expr  {$$ = $1 - $3;}
-      | expr '*' expr  {$$ = $1 * $3;}
-      | expr ':' expr  {$$ = $1 / $3;}
-      | REAL            {$$ = $1;}
-
-      ;
-exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
-      | exprFraction '-' exprFraction  {$$ = subFractions($1,$3);}
-      | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
-      | exprFraction ':' exprFraction  {$$ = divFractions($1,$3);}
-      | FRACTION            {$$ = $1;}
-      ;
-
-%%
-
-
-#include "lex.yy.c"
-	
-int main(void)
-{
-  return yyparse();}
+char* concatenateStrings(const char* str1, const char* str2) {
+    size_t len1 = strlen(str1);
+    size_t len2 = strlen(str2);
+    
+    // Allocate memory for the concatenated string
+    char* result = (char*)malloc((len1 + len2 + 1) * sizeof(char));
+    
+    // Check if memory allocation was successful
+    if (result == NULL) {
+        printf("Memory allocation failed.\n");
+        return NULL;
+    }
+    
+    // Copy str1 to the result string
+    strcpy(result, str1);
+    
+    // Concatenate str2 to the result string
+    strcat(result, str2);
+    
+    return result;
+}
