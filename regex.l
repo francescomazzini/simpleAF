@@ -36,6 +36,6 @@ decreasing {return DECREASING;}
 "-"     {return '-';}
 "*"     {return '*';}
 "/"     {return '/';}
-\n     {return '\n';}
+\n    {return '\n';}
 
 %%
