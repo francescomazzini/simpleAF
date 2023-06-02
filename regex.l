@@ -10,10 +10,10 @@ digit [0-9]
 letter [a-zA-Z]
 int {digit}+
 REAL {int}(\.{int})?
+STRING "{letter|digit}*"
 ID {letter}({letter}|{digit})*  
-
 FRACTION {int}\/{int}
-string \"{letter|digit}*\"
+
 date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
 
 
@@ -34,12 +34,16 @@ decreasing {return DECREASING;}
 {REAL}   {yylval.value = atof(yytext);
           return REAL;}
 
-{ID}    {yylval.lexeme = strdup(yytext);
-          return ID;}
 
 {FRACTION}  {yylval.lexeme =strdup(yytext);
              return FRACTION;}
 
+{STRING}  {yylval.lexeme =strdup(yytext);
+             return STRING;}
+
+{ID}    {yylval.lexeme = strdup(yytext);
+          return ID;}
+          
 "+"     {return '+';}
 "-"     {return '-';}
 "*"     {return '*';}

@@ -80,6 +80,25 @@ char* numbersToString(int number1, int number2) {
 
     return str;
 }
+
+char* simplifyFraction(int numerator, int denominator) {
+    int commonDivisor = gcd(numerator, denominator);
+
+    // Divide both numerator and denominator by the common divisor
+    numerator /= commonDivisor;
+    denominator /= commonDivisor;
+
+  
+    return numbersToString(numerator,denominator);
+}
+
+float convertStringToFloat(char* a){
+    int c = stringToNumberStart(a);
+    int b = stringToNumberEnd(a);
+
+    return (float)(c/b);
+}
+
 char* sumFractions(char* a, char* b){
      int numA = stringToNumberStart(a);
      int denA =stringToNumberEnd(a);
@@ -92,7 +111,7 @@ char* sumFractions(char* a, char* b){
 
      int numAdded = newNumA+newNumB;
 
-     return numbersToString(numAdded,mcm);
+     return simplifyFraction(numAdded,mcm);
 
 }
 
@@ -108,7 +127,7 @@ char* subFractions(char* a, char* b){
 
      int numAdded = newNumA-newNumB;
 
-     return numbersToString(numAdded,mcm);
+     return simplifyFraction(numAdded,mcm);
 
 }
 
@@ -122,7 +141,7 @@ char* mulFractions(char* a, char* b){
      int newNum = numA * numB;
      int newDen = denA * denB;
 
-     return numbersToString(newNum,newDen);
+     return simplifyFraction(newNum,newDen);
 }
 
 char* divFractions(char* a, char* b){
@@ -134,7 +153,7 @@ char* divFractions(char* a, char* b){
      int newNum = numA * denB;
      int newDen = denA * numB;
 
-     return numbersToString(newNum,newDen);
+     return simplifyFraction(newNum,newDen);
 }
 
 
@@ -147,8 +166,9 @@ char* divFractions(char* a, char* b){
        float value;			//attribute of a token of type NUM
        }
 
-%token <value>  REAL
 %token <lexeme> ID
+%token <value>  REAL
+%token <lexeme> STRING
 %token <lexeme> FRACTION
 %token IF
 %token THEN
@@ -170,6 +190,7 @@ char* divFractions(char* a, char* b){
 %%
 line  : expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
+      | STRING '\n'   {printf("String recognized: %s\n", $1); exit(0);}
       | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
       | THEN             {printf("Recognized: then\n"); exit(0);}
