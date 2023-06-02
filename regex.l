@@ -12,7 +12,7 @@ int {digit}+
 REAL {int}(\.{int})?
 ID {letter}({letter}|{digit})*  
 
-fraction {int}\/{int}
+FRACTION {int}\/{int}
 string \"{letter|digit}*\"
 date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
 
@@ -37,10 +37,13 @@ decreasing {return DECREASING;}
 {ID}    {yylval.lexeme = strdup(yytext);
           return ID;}
 
+{FRACTION}  {yylval.lexeme =strdup(yytext);
+             return FRACTION;}
+
 "+"     {return '+';}
 "-"     {return '-';}
 "*"     {return '*';}
-"/"     {return '/';}
+":"     {return ':';}
 \n    {return '\n';}
 
 %%
