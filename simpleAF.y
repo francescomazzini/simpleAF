@@ -113,6 +113,19 @@ char* subFractions(char* a, char* b){
 }
 
 
+char* mulFractions(char* a, char* b){
+     int numA = stringToNumberStart(a);
+     int denA =stringToNumberEnd(a);
+     int numB = stringToNumberStart(b);
+     int denB = stringToNumberEnd(b);
+
+     int newNum = numA * numB;
+     int newDen = denA * denB;
+
+     return numbersToString(newNum,newDen);
+}
+
+
  
 %}
 
@@ -166,6 +179,7 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       ;
 exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       | exprFraction '-' exprFraction  {$$ = subFractions($1,$3);}
+      | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
       | FRACTION            {$$ = $1;}
       ;
 
