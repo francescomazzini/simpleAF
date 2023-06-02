@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <math.h>
+
 
 void yyerror(const char *s)
 {
@@ -11,10 +13,6 @@ void yyerror(const char *s)
 }
 
 int yylex(void);
-
-
-
-
 
 // Funzione per calcolare il massimo comune divisore (GCD) di due numeri
 int gcd(int a, int b) {
@@ -99,7 +97,6 @@ char* sumFractions(char* a, char* b){
 }
 
 
-
  
 %}
 
@@ -131,7 +128,7 @@ char* sumFractions(char* a, char* b){
 
 %%
 line  : expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
-      | exprFraction
+      | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
       | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
       | THEN             {printf("Recognized: then\n"); exit(0);}
@@ -153,10 +150,11 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       ;
 exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       | FRACTION            {$$ = $1;}
-
       ;
 
 %%
+
+
 #include "lex.yy.c"
 	
 int main(void)
