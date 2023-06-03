@@ -62,7 +62,7 @@ struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id);
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
 
-struct symbolTable* SYMBOL_TABLE;
+struct symbolTable *SYMBOL_TABLE;
  
 %}
 
@@ -99,7 +99,7 @@ struct symbolTable* SYMBOL_TABLE;
 %left '*' ':'
 %left ';' '\n'
 
-%start line
+%start scope
 
 %%
 scope : prog            {SYMBOL_TABLE = createSymbolTable();}
@@ -111,7 +111,7 @@ prog  : line
 line  : line ';' '\n' line
       | END  '\n'       {exit(0);}
       | TYPE ID '=' expr '\n' { 
-                            if(!strcmp($1, "REAL")) {
+                            if(strcmp($1, "REAL") != 0) {
                                 printf("Error type");
                                 exit(1);
                             } else {
@@ -387,11 +387,19 @@ strcpy(first->type, type);
 return first;
 }
 struct symbolTable* createSymbolTable(){
+
+    printf("awwwwweeee");
   
   char* charValue = "first";
   struct symbolTable *table = (struct symbolTable*) malloc(sizeof(struct symbolTable));
   table->head = createFirstEntryTable("",(void*)charValue,"STRING");
   table->countSymbol = 0;
+
+    if(table == NULL)
+        printf("ciaovcidao");
+    else
+        printf("wewewew");
+
   return table;
 
 }
@@ -400,7 +408,7 @@ void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* ty
 
  struct symbolTableEntry *last = list;
 
-  while(!(last->next == NULL)) {
+  while(last->next != NULL) {
     if (strcmp(last->id, id)==0)
     {
       printf("already existing id \n");
@@ -408,12 +416,14 @@ void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* ty
     }
     
     last = last->next;
-    }
+  }
+
 
   last->next = createFirstEntryTable(id,value,type);
   
 }
 void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type){
+    
   addEntryTable(table->head,id,value,type);
   table->countSymbol++;
 
