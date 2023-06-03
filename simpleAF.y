@@ -55,12 +55,13 @@ struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type
 void createSymbolTable(struct symbolTable *table);
 void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type);
 void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type);
-void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id);
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol);
 void printSymbolTableEntry (struct symbolTable* symbol);
 struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id);
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
+void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id);
+void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType, void* value);
 
 struct symbolTable SYMBOL_TABLE;
  
@@ -111,10 +112,32 @@ prog  : line
 line  : line ';' '\n' line
       | END  '\n'       {exit(0);}
       | TYPE ID '=' expr '\n' { 
-        typeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
-                            
-                            printSymbolTableEntry(&SYMBOL_TABLE);
+                                typeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
+                                 printSymbolTableEntry(&SYMBOL_TABLE);
+                              }
+      | TYPE ID '=' exprStrings '\n' { 
+                            typeChecking(SYMBOL_TABLE,$1,"STRING",(void*)$4,$2);
+                                printSymbolTableEntry(&SYMBOL_TABLE);
+                            }
+      | TYPE ID '=' exprFraction'\n' { 
+                            typeChecking(SYMBOL_TABLE,$1,"FRACTION",(void*)$4,$2);
+                                printSymbolTableEntry(&SYMBOL_TABLE);
+                            }
 
+      | ID '=' expr '\n' { 
+                           updateValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL", (void*)&$3);
+
+                            printSymbolTableEntry(&SYMBOL_TABLE);
+                        }
+      | ID '=' exprStrings '\n' { 
+                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING", (void*)$3);
+
+                            printSymbolTableEntry(&SYMBOL_TABLE);
+                        }
+      | ID '=' exprFraction '\n' { 
+                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION", (void*)$3);
+
+                            printSymbolTableEntry(&SYMBOL_TABLE);
                         }
       | expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
@@ -384,9 +407,6 @@ return first;
 }
 void createSymbolTable(struct symbolTable *table){
 
-    
-  
-//   *table = (struct symbolTable*) malloc(sizeof(struct symbolTable));
   char* charValue = "first";
   table->head = createFirstEntryTable("",(void*)charValue,"STRING");
   table->countSymbol = 0;
@@ -419,17 +439,6 @@ void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type)
     
   addEntryTable(table->head,id,value,type);
   table->countSymbol++;
-
-}
-void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id){
-
-    if(strcmp(actualType, supposedType) != 0) {
-        printf("Error type");
-        exit(1);
-    } else {
-        addSymbolTable(&SYMBOL_TABLE, id, value, actualType);
-    }
-
 
 }
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
@@ -480,4 +489,55 @@ struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id) {
 }
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id){
   return lookUp(table->head,id);
+}
+
+//--------- util symbol table ---------
+
+void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id){
+
+    if(strcmp(actualType, supposedType) != 0) {
+        printf("Error type");
+        exit(1);
+    } else {
+        addSymbolTable(&SYMBOL_TABLE, id, value, actualType);
+    }
+
+
+}
+
+void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType, void* value) {
+
+    struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
+
+    if(entry == NULL) {
+        printf("ERROR! ID %s not found", id);
+        exit(1);
+    }
+    
+    if(strcmp(entry->type, actualType) != 0) {
+        printf("TYPE ERROR");
+        exit(1);
+    }
+
+    union Value tempValue;
+
+    if(strcmp(actualType, "REAL")==0){
+      tempValue.floatValue = *((float*)value);
+      entry->value = tempValue;
+    }else if(strcmp(actualType, "STRING")==0){
+        strncpy(tempValue.stringValue, (char*)value,NAME_MAX-1);
+        tempValue.stringValue[NAME_MAX-1]='\0';
+        entry->value = tempValue;
+    }else if (strcmp(actualType, "FRACTION")==0){
+    strncpy(tempValue.stringValue, (char*)value,NAME_MAX-1);
+        tempValue.stringValue[NAME_MAX-1]='\0';
+        entry->value = tempValue;
+
+    }else{
+        printf("error type");
+    }
+
+    // tempValue.floatValue = *((float*)&$3);
+    // entry->value = tempValue;
+
 }
