@@ -53,16 +53,16 @@ char* multiplyStrings (const char* str1, float mulNum);
 
 
 struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type);
-struct symbolTable* createSymbolTable();
+void createSymbolTable(struct symbolTable *table);
 void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type);
 void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type);
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol);
-void printSymbolTableEntry (struct symbolTableEntry* symbol);
+void printSymbolTableEntry (struct symbolTable* symbol);
 struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id);
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
 
-struct symbolTable *SYMBOL_TABLE;
+struct symbolTable SYMBOL_TABLE;
  
 %}
 
@@ -102,10 +102,10 @@ struct symbolTable *SYMBOL_TABLE;
 %start scope
 
 %%
-scope : prog            {SYMBOL_TABLE = createSymbolTable();}
+scope : prog          
       ;
 
-prog  : line
+prog  : line              
       ;
 
 line  : line ';' '\n' line
@@ -115,10 +115,10 @@ line  : line ';' '\n' line
                                 printf("Error type");
                                 exit(1);
                             } else {
-                                addSymbolTable(SYMBOL_TABLE, $2, (void*)&$4, $1);
+                                addSymbolTable(&SYMBOL_TABLE, $2, (void*)&$4, $1);
                             }
 
-                            printSymbolTableEntry(SYMBOL_TABLE->head);
+                            printSymbolTableEntry(&SYMBOL_TABLE);
 
                         }
       | expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
@@ -168,7 +168,9 @@ exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
 	
 int main(void)
 {
-  return yyparse();}
+  createSymbolTable(&SYMBOL_TABLE);
+  return yyparse();
+}
 
 
 
@@ -386,12 +388,12 @@ struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type
 strcpy(first->type, type);
 return first;
 }
-struct symbolTable* createSymbolTable(){
+void createSymbolTable(struct symbolTable *table){
 
     printf("awwwwweeee");
   
+//   *table = (struct symbolTable*) malloc(sizeof(struct symbolTable));
   char* charValue = "first";
-  struct symbolTable *table = (struct symbolTable*) malloc(sizeof(struct symbolTable));
   table->head = createFirstEntryTable("",(void*)charValue,"STRING");
   table->countSymbol = 0;
 
@@ -399,9 +401,6 @@ struct symbolTable* createSymbolTable(){
         printf("ciaovcidao");
     else
         printf("wewewew");
-
-  return table;
-
 }
 
 void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type) {
@@ -442,9 +441,9 @@ void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
     printf("error type");
   }
 }
-void printSymbolTableEntry (struct symbolTableEntry* symbol) {
+void printSymbolTableEntry (struct symbolTable* symbol) {
 
-struct symbolTableEntry *iterator = symbol;
+struct symbolTableEntry *iterator = symbol->head;
   while(iterator != NULL){
 
   printSingleSymbolTableEntry(iterator);
