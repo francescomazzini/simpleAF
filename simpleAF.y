@@ -51,11 +51,11 @@ int lcm(int a, int b);
 int gcd(int a, int b);
 char* multiplyStrings (const char* str1, float mulNum);
 
-
 struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type);
 void createSymbolTable(struct symbolTable *table);
 void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type);
 void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type);
+void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id);
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol);
 void printSymbolTableEntry (struct symbolTable* symbol);
 struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id);
@@ -111,13 +111,8 @@ prog  : line
 line  : line ';' '\n' line
       | END  '\n'       {exit(0);}
       | TYPE ID '=' expr '\n' { 
-                            if(strcmp($1, "REAL") != 0) {
-                                printf("Error type");
-                                exit(1);
-                            } else {
-                                addSymbolTable(&SYMBOL_TABLE, $2, (void*)&$4, $1);
-                            }
-
+        typeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
+                            
                             printSymbolTableEntry(&SYMBOL_TABLE);
 
                         }
@@ -171,7 +166,6 @@ int main(void)
   createSymbolTable(&SYMBOL_TABLE);
   return yyparse();
 }
-
 
 
 
@@ -390,17 +384,14 @@ return first;
 }
 void createSymbolTable(struct symbolTable *table){
 
-    printf("awwwwweeee");
+    
   
 //   *table = (struct symbolTable*) malloc(sizeof(struct symbolTable));
   char* charValue = "first";
   table->head = createFirstEntryTable("",(void*)charValue,"STRING");
   table->countSymbol = 0;
 
-    if(table == NULL)
-        printf("ciaovcidao");
-    else
-        printf("wewewew");
+
 }
 
 void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type) {
@@ -412,6 +403,7 @@ void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* ty
     {
       printf("already existing id \n");
       return;
+
     }
     
     last = last->next;
@@ -420,11 +412,24 @@ void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* ty
 
   last->next = createFirstEntryTable(id,value,type);
   
+
+  
 }
 void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type){
     
   addEntryTable(table->head,id,value,type);
   table->countSymbol++;
+
+}
+void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id){
+
+    if(strcmp(actualType, supposedType) != 0) {
+        printf("Error type");
+        exit(1);
+    } else {
+        addSymbolTable(&SYMBOL_TABLE, id, value, actualType);
+    }
+
 
 }
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
