@@ -80,6 +80,7 @@ struct symbolTable* SYMBOL_TABLE;
 %token <value>  REAL
 %token <lexeme> STRING
 %token <lexeme> FRACTION
+%token <lexeme> TYPE
 %token LOG
 %token RAD
 %token MOD
@@ -109,6 +110,17 @@ prog  : line
 
 line  : line ';' '\n' line
       | END  '\n'       {exit(0);}
+      | TYPE ID '=' expr '\n' { 
+                            if(!strcmp($1, "REAL")) {
+                                printf("Error type");
+                                exit(1);
+                            } else {
+                                addSymbolTable(SYMBOL_TABLE, $2, (void*)&$4, $1);
+                            }
+
+                            printSymbolTableEntry(SYMBOL_TABLE->head);
+
+                        }
       | expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
       | exprStrings '\n' {printf("Result: \"%s\"\n", $1); exit(0);}

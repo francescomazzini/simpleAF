@@ -14,6 +14,7 @@ REAL {INT}(\.{INT})?
 STRING \"({letter}|{digit})*\"
 ID {letter}({letter}|{digit})*  
 FRACTION {INT}\/{INT}
+TYPE (REAL)|(STRING)|(FRACTION)
 
 date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
 
@@ -44,11 +45,15 @@ end {return END;}
 {FRACTION}  {yylval.lexeme =strdup(yytext);
              return FRACTION;}
 
+{TYPE} {yylval.lexeme =strdup(yytext);
+             return TYPE;}
+
 {STRING}  {yylval.lexeme =removeFirstAndLasChar(strdup(yytext));
              return STRING;}
 
 {ID}    {yylval.lexeme = strdup(yytext);
           return ID;}
+
           
 "+"     {return '+';}
 "-"     {return '-';}
@@ -58,6 +63,7 @@ end {return END;}
 ")"     {return ')';}
 ","     {return ',';}
 ";"     {return ';';}
+"="     {return '=';}
 \n    {return '\n';}
 
 
