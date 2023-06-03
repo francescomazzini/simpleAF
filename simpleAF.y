@@ -178,7 +178,7 @@ exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       ;
 
 exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
-        | exprStrings '*' REAL {$$ = multiplyStrings($1,$3);}
+        | exprStrings '*' expr {$$ = multiplyStrings($1,$3);}
         | STRING {$$ = $1;}
         | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING");
                         $$ = charValue;}
