@@ -62,6 +62,7 @@ struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
 void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id);
 void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType, void* value);
+void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType);
 
 struct symbolTable SYMBOL_TABLE;
  
@@ -152,6 +153,7 @@ line  :  END  '\n'       {exit(0);}
       | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
       | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
       | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
+      
       ;
 expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '-' expr  {$$ = $1 - $3;}
@@ -162,6 +164,8 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
       | POW '(' expr ',' expr ')' {$$ =pow($3,$5);}
       | REAL            {$$ = $1;}
+      | ID             {float* floatValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL");
+                        $$ = *floatValue;}
 
       ;
 exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
@@ -169,11 +173,15 @@ exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
       | exprFraction ':' exprFraction  {$$ = divFractions($1,$3);}
       | FRACTION            {$$ = $1;}
+      | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION");
+                        $$ = charValue;}
       ;
 
 exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
         | exprStrings '*' REAL {$$ = multiplyStrings($1,$3);}
         | STRING {$$ = $1;}
+        | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING");
+                        $$ = charValue;}
         ;
 
         
@@ -538,5 +546,33 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char
 
     // tempValue.floatValue = *((float*)&$3);
     // entry->value = tempValue;
+
+}
+
+void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType) {
+
+    struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
+
+    if(entry == NULL) {
+        printf("ERROR! ID %s not found", id);
+        exit(1);
+    }
+    
+    if(strcmp(entry->type, actualType) != 0) {
+        printf("TYPE ERROR");
+        exit(1);
+    }
+
+    if(strcmp(actualType, "REAL")==0){
+        return (void*)&(entry->value.floatValue);
+    }else if(strcmp(actualType, "STRING")==0){
+        return (void*)&(entry->value.stringValue);
+    }else if (strcmp(actualType, "FRACTION")==0){
+        return (void*)&(entry->value.stringValue);
+    }else{
+        printf("error type");
+    }
+
+    return NULL;
 
 }
