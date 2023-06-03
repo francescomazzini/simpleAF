@@ -77,6 +77,7 @@ struct symbolTable SYMBOL_TABLE;
 %type <lexeme> exprStrings
 %type <lexeme> exprFraction
 
+%token END
 %token <lexeme> ID
 %token <value>  REAL
 %token <lexeme> STRING
@@ -94,7 +95,6 @@ struct symbolTable SYMBOL_TABLE;
 %token FROM
 %token INCREASING
 %token DECREASING
-%token END
 
 %left '+' '-'
 %left '*' ':'
@@ -106,42 +106,41 @@ struct symbolTable SYMBOL_TABLE;
 scope : prog          
       ;
 
-prog  : line              
+prog  : line  ';' '\n' prog
+        | line 
       ;
 
-line  : line ';' '\n' line
-      | END  '\n'       {exit(0);}
-      | TYPE ID '=' expr '\n' { 
+line  :  END  '\n'       {exit(0);}
+      | TYPE ID '=' expr  { 
                                 typeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
-                                 printSymbolTableEntry(&SYMBOL_TABLE);
+                                 printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
                               }
-      | TYPE ID '=' exprStrings '\n' { 
+      | TYPE ID '=' exprStrings  { 
                             typeChecking(SYMBOL_TABLE,$1,"STRING",(void*)$4,$2);
-                                printSymbolTableEntry(&SYMBOL_TABLE);
+                                printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
                             }
-      | TYPE ID '=' exprFraction'\n' { 
+      | TYPE ID '=' exprFraction { 
                             typeChecking(SYMBOL_TABLE,$1,"FRACTION",(void*)$4,$2);
-                                printSymbolTableEntry(&SYMBOL_TABLE);
+                                printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
                             }
 
-      | ID '=' expr '\n' { 
+      | ID '=' expr  { 
                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL", (void*)&$3);
 
-                            printSymbolTableEntry(&SYMBOL_TABLE);
+                            printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
-      | ID '=' exprStrings '\n' { 
+      | ID '=' exprStrings  { 
                             updateValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING", (void*)$3);
 
-                            printSymbolTableEntry(&SYMBOL_TABLE);
-                        }
-      | ID '=' exprFraction '\n' { 
+                            printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));                        }
+      | ID '=' exprFraction  { 
                             updateValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION", (void*)$3);
 
-                            printSymbolTableEntry(&SYMBOL_TABLE);
+                            printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
-      | expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
-      | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
-      | exprStrings '\n' {printf("Result: \"%s\"\n", $1); exit(0);}
+      | expr     {printf("Result: %5.2f\n", $1); exit(0);}
+      | exprFraction    {printf("Result: %s\n", $1); exit(0);}
+      | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
       | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
       | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
