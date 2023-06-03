@@ -33,9 +33,6 @@ from {return FROM;}
 increasing {return INCREASING;}
 decreasing {return DECREASING;}
 
-{INT}   {yylval.value = atoi(yytext);
-          return INT;}
-
 {REAL}   {yylval.value = atof(yytext);
           return REAL;}
 
