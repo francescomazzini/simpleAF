@@ -36,6 +36,7 @@ times {return TIMES;}
 from {return FROM;}
 increasing {return INCREASING;}
 decreasing {return DECREASING;}
+end {return END;}
 
 {REAL}   {yylval.value = atof(yytext);
           return REAL;}
@@ -56,6 +57,7 @@ decreasing {return DECREASING;}
 "("     {return '(';}
 ")"     {return ')';}
 ","     {return ',';}
+";"     {return ';';}
 \n    {return '\n';}
 
 
