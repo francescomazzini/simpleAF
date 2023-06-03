@@ -46,6 +46,10 @@ char* multiplyStrings (const char* str1, float mulNum);
 %token <value>  REAL
 %token <lexeme> STRING
 %token <lexeme> FRACTION
+%token LOG
+%token RAD
+%token MOD
+%token POW
 %token IF
 %token THEN
 %token ELSE
@@ -80,6 +84,10 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '-' expr  {$$ = $1 - $3;}
       | expr '*' expr  {$$ = $1 * $3;}
       | expr ':' expr  {$$ = $1 / $3;}
+      | RAD '(' expr ')' {$$ = sqrt($3);}
+      | LOG '(' expr ')' {$$ = log($3)/log(10);}
+      | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
+      | POW '(' expr ',' expr ')' {$$ =pow($3,$5);}
       | REAL            {$$ = $1;}
 
       ;

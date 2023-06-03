@@ -26,6 +26,10 @@ date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}
 if {return IF;}
 then {return THEN;}
 else {return ELSE;}
+rad {return RAD;}
+log {return LOG;}
+mod {return MOD;}
+pow {return POW;}
 
 for {return FOR;}
 times {return TIMES;}
@@ -49,6 +53,9 @@ decreasing {return DECREASING;}
 "-"     {return '-';}
 "*"     {return '*';}
 ":"     {return ':';}
+"("     {return '(';}
+")"     {return ')';}
+","     {return ',';}
 \n    {return '\n';}
 
 
