@@ -9,11 +9,11 @@ char* removeFirstAndLasChar(const char* str);
 
 digit [0-9]
 letter [a-zA-Z]
-int {digit}+
-REAL {int}(\.{int})?
+INT {digit}+
+REAL {INT}(\.{INT})?
 STRING \"({letter}|{digit})*\"
 ID {letter}({letter}|{digit})*  
-FRACTION {int}\/{int}
+FRACTION {INT}\/{INT}
 
 date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
 
@@ -33,9 +33,11 @@ from {return FROM;}
 increasing {return INCREASING;}
 decreasing {return DECREASING;}
 
+{INT}   {yylval.value = atoi(yytext);
+          return INT;}
+
 {REAL}   {yylval.value = atof(yytext);
           return REAL;}
-
 
 {FRACTION}  {yylval.lexeme =strdup(yytext);
              return FRACTION;}

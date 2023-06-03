@@ -26,6 +26,7 @@ int stringToNumberEnd(const char* str);
 int stringToNumberStart(const char* str);
 int lcm(int a, int b);
 int gcd(int a, int b);
+char* multiplyStrings (const char* str1, const int mulNum);
 
 
  
@@ -35,12 +36,14 @@ int gcd(int a, int b);
 %union {
        char* lexeme;			//name of an identifier
        float value;			//attribute of a token of type NUM
+       int integer;
        }
 
 %token <lexeme> ID
 %token <value>  REAL
 %token <lexeme> STRING
 %token <lexeme> FRACTION
+%token <integer> INT
 %token IF
 %token THEN
 %token ELSE
@@ -53,6 +56,7 @@ int gcd(int a, int b);
 %type <value> expr
 %type <lexeme> exprFraction
 %type <lexeme> exprStrings
+%type <integer> exprInt
 
 %left '+' '-'
 %left '*' ':'
@@ -63,6 +67,7 @@ int gcd(int a, int b);
 line  : expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction '\n'   {printf("Result: %s\n", $1); exit(0);}
       | exprStrings '\n' {printf("Result: \"%s\"\n", $1); exit(0);}
+      | exprInt '\n' {printf("Result: %d\n", $1); exit(0);}
       | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
       | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
@@ -74,7 +79,6 @@ line  : expr '\n'      {printf("Result: %5.2f\n", $1); exit(0);}
       | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
       | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
       | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
-      
       ;
 expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '-' expr  {$$ = $1 - $3;}
@@ -90,9 +94,14 @@ exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       | FRACTION            {$$ = $1;}
       ;
 
+exprInt: INT {$$ = $1;}
+        ;
+
 exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
+        | exprStrings '*' exprInt {$$ = multiplyStrings($1,$3);}
         | STRING {$$ = $1;}
         ;
+
         
 
 %%
@@ -265,5 +274,21 @@ char* concatenateStrings(const char* str1, const char* str2) {
     // Concatenate str2 to the result string
     strcat(result, str2);
     
+    return result;
+}
+
+char* multiplyStrings(const char* str, int numTimes) {
+    size_t strLength = strlen(str);
+    size_t resultLength = strLength * numTimes;
+
+    char* result = (char*)malloc((resultLength + 1) * sizeof(char));
+    strcpy(result, "");
+
+    printf("%d", numTimes);
+
+    for (int i = 0; i < numTimes; i++) {
+        strcat(result, str);
+    }
+
     return result;
 }
