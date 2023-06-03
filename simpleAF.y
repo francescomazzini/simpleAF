@@ -96,6 +96,7 @@ struct symbolTable* SYMBOL_TABLE;
 
 %left '+' '-'
 %left '*' ':'
+%left ';' '\n'
 
 %start line
 
