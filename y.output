@@ -1,7 +1,12 @@
-State 2 conflicts: 12 reduce/reduce
+Terminals unused in grammar
+
+    BOOLEAN
+
+
+State 2 conflicts: 14 reduce/reduce
 State 4 conflicts: 2 reduce/reduce
 State 5 conflicts: 2 reduce/reduce
-State 45 conflicts: 10 reduce/reduce
+State 49 conflicts: 10 reduce/reduce
 
 
 Grammar
@@ -20,10 +25,10 @@ Grammar
     8     | ID '=' expr
     9     | ID '=' exprStrings
    10     | ID '=' exprFraction
-   11     | BOOLEAN
-   12     | expr
-   13     | exprFraction
-   14     | exprStrings
+   11     | expr
+   12     | exprFraction
+   13     | exprStrings
+   14     | exprBool
    15     | STRING
    16     | ID
    17     | IF
@@ -40,50 +45,57 @@ Grammar
    27     | expr '-' expr
    28     | expr '*' expr
    29     | expr ':' expr
-   30     | RAD '(' expr ')'
-   31     | LOG '(' expr ')'
-   32     | MOD '(' expr ',' expr ')'
-   33     | POW '(' expr ',' expr ')'
-   34     | REAL
-   35     | ID
+   30     | expr '>' expr
+   31     | expr '<' expr
+   32     | RAD '(' expr ')'
+   33     | LOG '(' expr ')'
+   34     | MOD '(' expr ',' expr ')'
+   35     | POW '(' expr ',' expr ')'
+   36     | REAL
+   37     | ID
 
-   36 exprFraction: exprFraction '+' exprFraction
-   37             | exprFraction '-' exprFraction
-   38             | exprFraction '*' exprFraction
-   39             | exprFraction ':' exprFraction
-   40             | FRACTION
-   41             | ID
+   38 exprFraction: exprFraction '+' exprFraction
+   39             | exprFraction '-' exprFraction
+   40             | exprFraction '*' exprFraction
+   41             | exprFraction ':' exprFraction
+   42             | FRACTION
+   43             | ID
 
-   42 exprStrings: exprStrings '+' exprStrings
-   43            | exprStrings '*' expr
-   44            | STRING
-   45            | ID
+   44 exprBool: exprFraction '>' exprFraction
+   45         | exprFraction '<' exprFraction
+
+   46 exprStrings: exprStrings '+' exprStrings
+   47            | exprStrings '*' expr
+   48            | STRING
+   49            | ID
 
 
 Terminals, with rules where they appear
 
     $end (0) 0
     '\n' (10) 2 4
-    '(' (40) 30 31 32 33
-    ')' (41) 30 31 32 33
-    '*' (42) 28 38 43
-    '+' (43) 26 36 42
-    ',' (44) 32 33
-    '-' (45) 27 37
-    ':' (58) 29 39
+    '(' (40) 32 33 34 35
+    ')' (41) 32 33 34 35
+    '*' (42) 28 40 47
+    '+' (43) 26 38 46
+    ',' (44) 34 35
+    '-' (45) 27 39
+    ':' (58) 29 41
     ';' (59) 2
+    '<' (60) 31 45
     '=' (61) 5 6 7 8 9 10
+    '>' (62) 30 44
     error (256)
     END (258) 4
-    ID <lexeme> (259) 5 6 7 8 9 10 16 35 41 45
-    REAL <value> (260) 34
-    STRING <lexeme> (261) 15 44
-    FRACTION <lexeme> (262) 25 40
+    ID <lexeme> (259) 5 6 7 8 9 10 16 37 43 49
+    REAL <value> (260) 36
+    STRING <lexeme> (261) 15 48
+    FRACTION <lexeme> (262) 25 42
     TYPE <lexeme> (263) 5 6 7
-    LOG (264) 31
-    RAD (265) 30
-    MOD (266) 32
-    POW (267) 33
+    LOG (264) 33
+    RAD (265) 32
+    MOD (266) 34
+    POW (267) 35
     IF (268) 17
     THEN (269) 18
     ELSE (270) 19
@@ -92,31 +104,34 @@ Terminals, with rules where they appear
     FROM (273) 22
     INCREASING (274) 23
     DECREASING (275) 24
-    BOOLEAN (276) 11
+    BOOLEAN (276)
 
 
 Nonterminals, with rules where they appear
 
-    $accept (32)
+    $accept (34)
         on left: 0
-    scope (33)
+    scope (35)
         on left: 1
         on right: 0
-    prog (34)
+    prog (36)
         on left: 2 3
         on right: 1 2
-    line (35)
+    line (37)
         on left: 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
         on right: 2 3
-    expr <value> (36)
-        on left: 26 27 28 29 30 31 32 33 34 35
-        on right: 5 8 12 26 27 28 29 30 31 32 33 43
-    exprFraction <lexeme> (37)
-        on left: 36 37 38 39 40 41
-        on right: 7 10 13 36 37 38 39
-    exprStrings <lexeme> (38)
-        on left: 42 43 44 45
-        on right: 6 9 14 42 43
+    expr <value> (38)
+        on left: 26 27 28 29 30 31 32 33 34 35 36 37
+        on right: 5 8 11 26 27 28 29 30 31 32 33 34 35 47
+    exprFraction <lexeme> (39)
+        on left: 38 39 40 41 42 43
+        on right: 7 10 12 38 39 40 41 44 45
+    exprBool <boolean> (40)
+        on left: 44 45
+        on right: 14
+    exprStrings <lexeme> (41)
+        on left: 46 47 48 49
+        on right: 6 9 13 46 47
 
 
 State 0
@@ -141,13 +156,13 @@ State 0
     FROM        shift, and go to state 16
     INCREASING  shift, and go to state 17
     DECREASING  shift, and go to state 18
-    BOOLEAN     shift, and go to state 19
 
-    scope         go to state 20
-    prog          go to state 21
-    line          go to state 22
-    expr          go to state 23
-    exprFraction  go to state 24
+    scope         go to state 19
+    prog          go to state 20
+    line          go to state 21
+    expr          go to state 22
+    exprFraction  go to state 23
+    exprBool      go to state 24
     exprStrings   go to state 25
 
 
@@ -164,64 +179,68 @@ State 2
     9     | ID • '=' exprStrings
    10     | ID • '=' exprFraction
    16     | ID •
-   35 expr: ID •
-   41 exprFraction: ID •
-   45 exprStrings: ID •
+   37 expr: ID •
+   43 exprFraction: ID •
+   49 exprStrings: ID •
 
     '='  shift, and go to state 27
 
     $end      reduce using rule 16 (line)
-    $end      [reduce using rule 35 (expr)]
-    $end      [reduce using rule 41 (exprFraction)]
-    $end      [reduce using rule 45 (exprStrings)]
-    '+'       reduce using rule 35 (expr)
-    '+'       [reduce using rule 41 (exprFraction)]
-    '+'       [reduce using rule 45 (exprStrings)]
-    '-'       reduce using rule 35 (expr)
-    '-'       [reduce using rule 41 (exprFraction)]
-    '*'       reduce using rule 35 (expr)
-    '*'       [reduce using rule 41 (exprFraction)]
-    '*'       [reduce using rule 45 (exprStrings)]
-    ':'       reduce using rule 35 (expr)
-    ':'       [reduce using rule 41 (exprFraction)]
+    $end      [reduce using rule 37 (expr)]
+    $end      [reduce using rule 43 (exprFraction)]
+    $end      [reduce using rule 49 (exprStrings)]
+    '+'       reduce using rule 37 (expr)
+    '+'       [reduce using rule 43 (exprFraction)]
+    '+'       [reduce using rule 49 (exprStrings)]
+    '-'       reduce using rule 37 (expr)
+    '-'       [reduce using rule 43 (exprFraction)]
+    '*'       reduce using rule 37 (expr)
+    '*'       [reduce using rule 43 (exprFraction)]
+    '*'       [reduce using rule 49 (exprStrings)]
+    ':'       reduce using rule 37 (expr)
+    ':'       [reduce using rule 43 (exprFraction)]
+    '<'       reduce using rule 37 (expr)
+    '<'       [reduce using rule 43 (exprFraction)]
+    '>'       reduce using rule 37 (expr)
+    '>'       [reduce using rule 43 (exprFraction)]
     ';'       reduce using rule 16 (line)
-    ';'       [reduce using rule 35 (expr)]
-    ';'       [reduce using rule 41 (exprFraction)]
-    ';'       [reduce using rule 45 (exprStrings)]
-    $default  reduce using rule 35 (expr)
+    ';'       [reduce using rule 37 (expr)]
+    ';'       [reduce using rule 43 (exprFraction)]
+    ';'       [reduce using rule 49 (exprStrings)]
+    $default  reduce using rule 37 (expr)
 
 
 State 3
 
-   34 expr: REAL •
+   36 expr: REAL •
 
-    $default  reduce using rule 34 (expr)
+    $default  reduce using rule 36 (expr)
 
 
 State 4
 
    15 line: STRING •
-   44 exprStrings: STRING •
+   48 exprStrings: STRING •
 
     $end      reduce using rule 15 (line)
-    $end      [reduce using rule 44 (exprStrings)]
-    '+'       reduce using rule 44 (exprStrings)
-    '*'       reduce using rule 44 (exprStrings)
+    $end      [reduce using rule 48 (exprStrings)]
+    '+'       reduce using rule 48 (exprStrings)
+    '*'       reduce using rule 48 (exprStrings)
     ';'       reduce using rule 15 (line)
-    ';'       [reduce using rule 44 (exprStrings)]
+    ';'       [reduce using rule 48 (exprStrings)]
     $default  reduce using rule 15 (line)
 
 
 State 5
 
    25 line: FRACTION •
-   40 exprFraction: FRACTION •
+   42 exprFraction: FRACTION •
 
     $end      reduce using rule 25 (line)
-    $end      [reduce using rule 40 (exprFraction)]
+    $end      [reduce using rule 42 (exprFraction)]
     ';'       reduce using rule 25 (line)
-    ';'       [reduce using rule 40 (exprFraction)]
-    $default  reduce using rule 40 (exprFraction)
+    ';'       [reduce using rule 42 (exprFraction)]
+    $default  reduce using rule 42 (exprFraction)
 
 
 State 6
@@ -235,28 +254,28 @@ State 6
 
 State 7
 
-   31 expr: LOG • '(' expr ')'
+   33 expr: LOG • '(' expr ')'
 
     '('  shift, and go to state 29
 
 
 State 8
 
-   30 expr: RAD • '(' expr ')'
+   32 expr: RAD • '(' expr ')'
 
     '('  shift, and go to state 30
 
 
 State 9
 
-   32 expr: MOD • '(' expr ',' expr ')'
+   34 expr: MOD • '(' expr ',' expr ')'
 
     '('  shift, and go to state 31
 
 
 State 10
 
-   33 expr: POW • '(' expr ',' expr ')'
+   35 expr: POW • '(' expr ',' expr ')'
 
     '('  shift, and go to state 32
 
@@ -319,26 +338,19 @@ State 18
 
 State 19
 
-   11 line: BOOLEAN •
-
-    $default  reduce using rule 11 (line)
-
-
-State 20
-
     0 $accept: scope • $end
 
     $end  shift, and go to state 33
 
 
-State 21
+State 20
 
     1 scope: prog •
 
     $default  reduce using rule 1 (scope)
 
 
-State 22
+State 21
 
     2 prog: line • ';' '\n' prog
     3     | line •
@@ -348,48 +360,63 @@ State 22
     $default  reduce using rule 3 (prog)
 
 
-State 23
+State 22
 
-   12 line: expr •
+   11 line: expr •
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
 
     '+'  shift, and go to state 35
     '-'  shift, and go to state 36
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+
+    $default  reduce using rule 11 (line)
+
+
+State 23
+
+   12 line: exprFraction •
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
+   44 exprBool: exprFraction • '>' exprFraction
+   45         | exprFraction • '<' exprFraction
+
+    '+'  shift, and go to state 41
+    '-'  shift, and go to state 42
+    '*'  shift, and go to state 43
+    ':'  shift, and go to state 44
+    '<'  shift, and go to state 45
+    '>'  shift, and go to state 46
 
     $default  reduce using rule 12 (line)
 
 
 State 24
 
-   13 line: exprFraction •
-   36 exprFraction: exprFraction • '+' exprFraction
-   37             | exprFraction • '-' exprFraction
-   38             | exprFraction • '*' exprFraction
-   39             | exprFraction • ':' exprFraction
+   14 line: exprBool •
 
-    '+'  shift, and go to state 39
-    '-'  shift, and go to state 40
-    '*'  shift, and go to state 41
-    ':'  shift, and go to state 42
-
-    $default  reduce using rule 13 (line)
+    $default  reduce using rule 14 (line)
 
 
 State 25
 
-   14 line: exprStrings •
-   42 exprStrings: exprStrings • '+' exprStrings
-   43            | exprStrings • '*' expr
+   13 line: exprStrings •
+   46 exprStrings: exprStrings • '+' exprStrings
+   47            | exprStrings • '*' expr
 
-    '+'  shift, and go to state 43
-    '*'  shift, and go to state 44
+    '+'  shift, and go to state 47
+    '*'  shift, and go to state 48
 
-    $default  reduce using rule 14 (line)
+    $default  reduce using rule 13 (line)
 
 
 State 26
@@ -405,18 +432,18 @@ State 27
     9     | ID '=' • exprStrings
    10     | ID '=' • exprFraction
 
-    ID        shift, and go to state 45
+    ID        shift, and go to state 49
     REAL      shift, and go to state 3
-    STRING    shift, and go to state 46
-    FRACTION  shift, and go to state 47
+    STRING    shift, and go to state 50
+    FRACTION  shift, and go to state 51
     LOG       shift, and go to state 7
     RAD       shift, and go to state 8
     MOD       shift, and go to state 9
     POW       shift, and go to state 10
 
-    expr          go to state 48
-    exprFraction  go to state 49
-    exprStrings   go to state 50
+    expr          go to state 52
+    exprFraction  go to state 53
+    exprStrings   go to state 54
 
 
 State 28
@@ -425,63 +452,63 @@ State 28
     6     | TYPE ID • '=' exprStrings
     7     | TYPE ID • '=' exprFraction
 
-    '='  shift, and go to state 51
+    '='  shift, and go to state 55
 
 
 State 29
 
-   31 expr: LOG '(' • expr ')'
+   33 expr: LOG '(' • expr ')'
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 53
+    expr  go to state 57
 
 
 State 30
 
-   30 expr: RAD '(' • expr ')'
+   32 expr: RAD '(' • expr ')'
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 54
+    expr  go to state 58
 
 
 State 31
 
-   32 expr: MOD '(' • expr ',' expr ')'
+   34 expr: MOD '(' • expr ',' expr ')'
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 55
+    expr  go to state 59
 
 
 State 32
 
-   33 expr: POW '(' • expr ',' expr ')'
+   35 expr: POW '(' • expr ',' expr ')'
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 56
+    expr  go to state 60
 
 
 State 33
@@ -495,300 +522,368 @@ State 34
 
     2 prog: line ';' • '\n' prog
 
-    '\n'  shift, and go to state 57
+    '\n'  shift, and go to state 61
 
 
 State 35
 
    26 expr: expr '+' • expr
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 58
+    expr  go to state 62
 
 
 State 36
 
    27 expr: expr '-' • expr
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 59
+    expr  go to state 63
 
 
 State 37
 
    28 expr: expr '*' • expr
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 60
+    expr  go to state 64
 
 
 State 38
 
    29 expr: expr ':' • expr
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 61
+    expr  go to state 65
 
 
 State 39
 
-   36 exprFraction: exprFraction '+' • exprFraction
+   31 expr: expr '<' • expr
 
-    ID        shift, and go to state 62
-    FRACTION  shift, and go to state 47
-
-    exprFraction  go to state 63
-
-
-State 40
-
-   37 exprFraction: exprFraction '-' • exprFraction
-
-    ID        shift, and go to state 62
-    FRACTION  shift, and go to state 47
-
-    exprFraction  go to state 64
-
-
-State 41
-
-   38 exprFraction: exprFraction '*' • exprFraction
-
-    ID        shift, and go to state 62
-    FRACTION  shift, and go to state 47
-
-    exprFraction  go to state 65
-
-
-State 42
-
-   39 exprFraction: exprFraction ':' • exprFraction
-
-    ID        shift, and go to state 62
-    FRACTION  shift, and go to state 47
-
-    exprFraction  go to state 66
-
-
-State 43
-
-   42 exprStrings: exprStrings '+' • exprStrings
-
-    ID      shift, and go to state 67
-    STRING  shift, and go to state 46
-
-    exprStrings  go to state 68
-
-
-State 44
-
-   43 exprStrings: exprStrings '*' • expr
-
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 69
+    expr  go to state 66
+
+
+State 40
+
+   30 expr: expr '>' • expr
+
+    ID    shift, and go to state 56
+    REAL  shift, and go to state 3
+    LOG   shift, and go to state 7
+    RAD   shift, and go to state 8
+    MOD   shift, and go to state 9
+    POW   shift, and go to state 10
+
+    expr  go to state 67
+
+
+State 41
+
+   38 exprFraction: exprFraction '+' • exprFraction
+
+    ID        shift, and go to state 68
+    FRACTION  shift, and go to state 51
+
+    exprFraction  go to state 69
+
+
+State 42
+
+   39 exprFraction: exprFraction '-' • exprFraction
+
+    ID        shift, and go to state 68
+    FRACTION  shift, and go to state 51
+
+    exprFraction  go to state 70
+
+
+State 43
+
+   40 exprFraction: exprFraction '*' • exprFraction
+
+    ID        shift, and go to state 68
+    FRACTION  shift, and go to state 51
+
+    exprFraction  go to state 71
+
+
+State 44
+
+   41 exprFraction: exprFraction ':' • exprFraction
+
+    ID        shift, and go to state 68
+    FRACTION  shift, and go to state 51
+
+    exprFraction  go to state 72
 
 
 State 45
 
-   35 expr: ID •
-   41 exprFraction: ID •
-   45 exprStrings: ID •
+   45 exprBool: exprFraction '<' • exprFraction
 
-    $end      reduce using rule 35 (expr)
-    $end      [reduce using rule 41 (exprFraction)]
-    $end      [reduce using rule 45 (exprStrings)]
-    '+'       reduce using rule 35 (expr)
-    '+'       [reduce using rule 41 (exprFraction)]
-    '+'       [reduce using rule 45 (exprStrings)]
-    '-'       reduce using rule 35 (expr)
-    '-'       [reduce using rule 41 (exprFraction)]
-    '*'       reduce using rule 35 (expr)
-    '*'       [reduce using rule 41 (exprFraction)]
-    '*'       [reduce using rule 45 (exprStrings)]
-    ':'       reduce using rule 35 (expr)
-    ':'       [reduce using rule 41 (exprFraction)]
-    ';'       reduce using rule 35 (expr)
-    ';'       [reduce using rule 41 (exprFraction)]
-    ';'       [reduce using rule 45 (exprStrings)]
-    $default  reduce using rule 35 (expr)
+    ID        shift, and go to state 68
+    FRACTION  shift, and go to state 51
+
+    exprFraction  go to state 73
 
 
 State 46
 
-   44 exprStrings: STRING •
+   44 exprBool: exprFraction '>' • exprFraction
 
-    $default  reduce using rule 44 (exprStrings)
+    ID        shift, and go to state 68
+    FRACTION  shift, and go to state 51
+
+    exprFraction  go to state 74
 
 
 State 47
 
-   40 exprFraction: FRACTION •
+   46 exprStrings: exprStrings '+' • exprStrings
 
-    $default  reduce using rule 40 (exprFraction)
+    ID      shift, and go to state 75
+    STRING  shift, and go to state 50
+
+    exprStrings  go to state 76
 
 
 State 48
+
+   47 exprStrings: exprStrings '*' • expr
+
+    ID    shift, and go to state 56
+    REAL  shift, and go to state 3
+    LOG   shift, and go to state 7
+    RAD   shift, and go to state 8
+    MOD   shift, and go to state 9
+    POW   shift, and go to state 10
+
+    expr  go to state 77
+
+
+State 49
+
+   37 expr: ID •
+   43 exprFraction: ID •
+   49 exprStrings: ID •
+
+    $end      reduce using rule 37 (expr)
+    $end      [reduce using rule 43 (exprFraction)]
+    $end      [reduce using rule 49 (exprStrings)]
+    '+'       reduce using rule 37 (expr)
+    '+'       [reduce using rule 43 (exprFraction)]
+    '+'       [reduce using rule 49 (exprStrings)]
+    '-'       reduce using rule 37 (expr)
+    '-'       [reduce using rule 43 (exprFraction)]
+    '*'       reduce using rule 37 (expr)
+    '*'       [reduce using rule 43 (exprFraction)]
+    '*'       [reduce using rule 49 (exprStrings)]
+    ':'       reduce using rule 37 (expr)
+    ':'       [reduce using rule 43 (exprFraction)]
+    ';'       reduce using rule 37 (expr)
+    ';'       [reduce using rule 43 (exprFraction)]
+    ';'       [reduce using rule 49 (exprStrings)]
+    $default  reduce using rule 37 (expr)
+
+
+State 50
+
+   48 exprStrings: STRING •
+
+    $default  reduce using rule 48 (exprStrings)
+
+
+State 51
+
+   42 exprFraction: FRACTION •
+
+    $default  reduce using rule 42 (exprFraction)
+
+
+State 52
 
     8 line: ID '=' expr •
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
 
     '+'  shift, and go to state 35
     '-'  shift, and go to state 36
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
 
     $default  reduce using rule 8 (line)
 
 
-State 49
+State 53
 
    10 line: ID '=' exprFraction •
-   36 exprFraction: exprFraction • '+' exprFraction
-   37             | exprFraction • '-' exprFraction
-   38             | exprFraction • '*' exprFraction
-   39             | exprFraction • ':' exprFraction
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
 
-    '+'  shift, and go to state 39
-    '-'  shift, and go to state 40
-    '*'  shift, and go to state 41
-    ':'  shift, and go to state 42
+    '+'  shift, and go to state 41
+    '-'  shift, and go to state 42
+    '*'  shift, and go to state 43
+    ':'  shift, and go to state 44
 
     $default  reduce using rule 10 (line)
 
 
-State 50
+State 54
 
     9 line: ID '=' exprStrings •
-   42 exprStrings: exprStrings • '+' exprStrings
-   43            | exprStrings • '*' expr
+   46 exprStrings: exprStrings • '+' exprStrings
+   47            | exprStrings • '*' expr
 
-    '+'  shift, and go to state 43
-    '*'  shift, and go to state 44
+    '+'  shift, and go to state 47
+    '*'  shift, and go to state 48
 
     $default  reduce using rule 9 (line)
 
 
-State 51
+State 55
 
     5 line: TYPE ID '=' • expr
     6     | TYPE ID '=' • exprStrings
     7     | TYPE ID '=' • exprFraction
 
-    ID        shift, and go to state 45
+    ID        shift, and go to state 49
     REAL      shift, and go to state 3
-    STRING    shift, and go to state 46
-    FRACTION  shift, and go to state 47
+    STRING    shift, and go to state 50
+    FRACTION  shift, and go to state 51
     LOG       shift, and go to state 7
     RAD       shift, and go to state 8
     MOD       shift, and go to state 9
     POW       shift, and go to state 10
 
-    expr          go to state 70
-    exprFraction  go to state 71
-    exprStrings   go to state 72
-
-
-State 52
-
-   35 expr: ID •
-
-    $default  reduce using rule 35 (expr)
-
-
-State 53
-
-   26 expr: expr • '+' expr
-   27     | expr • '-' expr
-   28     | expr • '*' expr
-   29     | expr • ':' expr
-   31     | LOG '(' expr • ')'
-
-    '+'  shift, and go to state 35
-    '-'  shift, and go to state 36
-    '*'  shift, and go to state 37
-    ':'  shift, and go to state 38
-    ')'  shift, and go to state 73
-
-
-State 54
-
-   26 expr: expr • '+' expr
-   27     | expr • '-' expr
-   28     | expr • '*' expr
-   29     | expr • ':' expr
-   30     | RAD '(' expr • ')'
-
-    '+'  shift, and go to state 35
-    '-'  shift, and go to state 36
-    '*'  shift, and go to state 37
-    ':'  shift, and go to state 38
-    ')'  shift, and go to state 74
-
-
-State 55
-
-   26 expr: expr • '+' expr
-   27     | expr • '-' expr
-   28     | expr • '*' expr
-   29     | expr • ':' expr
-   32     | MOD '(' expr • ',' expr ')'
-
-    '+'  shift, and go to state 35
-    '-'  shift, and go to state 36
-    '*'  shift, and go to state 37
-    ':'  shift, and go to state 38
-    ','  shift, and go to state 75
+    expr          go to state 78
+    exprFraction  go to state 79
+    exprStrings   go to state 80
 
 
 State 56
 
+   37 expr: ID •
+
+    $default  reduce using rule 37 (expr)
+
+
+State 57
+
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
-   33     | POW '(' expr • ',' expr ')'
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   33     | LOG '(' expr • ')'
 
     '+'  shift, and go to state 35
     '-'  shift, and go to state 36
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
-    ','  shift, and go to state 76
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+    ')'  shift, and go to state 81
 
 
-State 57
+State 58
+
+   26 expr: expr • '+' expr
+   27     | expr • '-' expr
+   28     | expr • '*' expr
+   29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   32     | RAD '(' expr • ')'
+
+    '+'  shift, and go to state 35
+    '-'  shift, and go to state 36
+    '*'  shift, and go to state 37
+    ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+    ')'  shift, and go to state 82
+
+
+State 59
+
+   26 expr: expr • '+' expr
+   27     | expr • '-' expr
+   28     | expr • '*' expr
+   29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   34     | MOD '(' expr • ',' expr ')'
+
+    '+'  shift, and go to state 35
+    '-'  shift, and go to state 36
+    '*'  shift, and go to state 37
+    ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+    ','  shift, and go to state 83
+
+
+State 60
+
+   26 expr: expr • '+' expr
+   27     | expr • '-' expr
+   28     | expr • '*' expr
+   29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   35     | POW '(' expr • ',' expr ')'
+
+    '+'  shift, and go to state 35
+    '-'  shift, and go to state 36
+    '*'  shift, and go to state 37
+    ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+    ','  shift, and go to state 84
+
+
+State 61
 
     2 prog: line ';' '\n' • prog
 
@@ -810,286 +905,378 @@ State 57
     FROM        shift, and go to state 16
     INCREASING  shift, and go to state 17
     DECREASING  shift, and go to state 18
-    BOOLEAN     shift, and go to state 19
 
-    prog          go to state 77
-    line          go to state 22
-    expr          go to state 23
-    exprFraction  go to state 24
+    prog          go to state 85
+    line          go to state 21
+    expr          go to state 22
+    exprFraction  go to state 23
+    exprBool      go to state 24
     exprStrings   go to state 25
 
 
-State 58
+State 62
 
    26 expr: expr • '+' expr
    26     | expr '+' expr •
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
 
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
 
     $default  reduce using rule 26 (expr)
 
 
-State 59
+State 63
 
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    27     | expr '-' expr •
    28     | expr • '*' expr
    29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
 
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
 
     $default  reduce using rule 27 (expr)
 
 
-State 60
+State 64
 
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    28     | expr '*' expr •
    29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
 
     $default  reduce using rule 28 (expr)
 
 
-State 61
+State 65
 
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
    29     | expr ':' expr •
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
 
     $default  reduce using rule 29 (expr)
 
 
-State 62
-
-   41 exprFraction: ID •
-
-    $default  reduce using rule 41 (exprFraction)
-
-
-State 63
-
-   36 exprFraction: exprFraction • '+' exprFraction
-   36             | exprFraction '+' exprFraction •
-   37             | exprFraction • '-' exprFraction
-   38             | exprFraction • '*' exprFraction
-   39             | exprFraction • ':' exprFraction
-
-    '*'  shift, and go to state 41
-    ':'  shift, and go to state 42
-
-    $default  reduce using rule 36 (exprFraction)
-
-
-State 64
-
-   36 exprFraction: exprFraction • '+' exprFraction
-   37             | exprFraction • '-' exprFraction
-   37             | exprFraction '-' exprFraction •
-   38             | exprFraction • '*' exprFraction
-   39             | exprFraction • ':' exprFraction
-
-    '*'  shift, and go to state 41
-    ':'  shift, and go to state 42
-
-    $default  reduce using rule 37 (exprFraction)
-
-
-State 65
-
-   36 exprFraction: exprFraction • '+' exprFraction
-   37             | exprFraction • '-' exprFraction
-   38             | exprFraction • '*' exprFraction
-   38             | exprFraction '*' exprFraction •
-   39             | exprFraction • ':' exprFraction
-
-    $default  reduce using rule 38 (exprFraction)
-
-
 State 66
-
-   36 exprFraction: exprFraction • '+' exprFraction
-   37             | exprFraction • '-' exprFraction
-   38             | exprFraction • '*' exprFraction
-   39             | exprFraction • ':' exprFraction
-   39             | exprFraction ':' exprFraction •
-
-    $default  reduce using rule 39 (exprFraction)
-
-
-State 67
-
-   45 exprStrings: ID •
-
-    $default  reduce using rule 45 (exprStrings)
-
-
-State 68
-
-   42 exprStrings: exprStrings • '+' exprStrings
-   42            | exprStrings '+' exprStrings •
-   43            | exprStrings • '*' expr
-
-    '*'  shift, and go to state 44
-
-    $default  reduce using rule 42 (exprStrings)
-
-
-State 69
 
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
-   43 exprStrings: exprStrings '*' expr •
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   31     | expr '<' expr •
 
-    '-'  shift, and go to state 36
-    ':'  shift, and go to state 38
+    $default  reduce using rule 31 (expr)
 
-    $default  reduce using rule 43 (exprStrings)
+
+State 67
+
+   26 expr: expr • '+' expr
+   27     | expr • '-' expr
+   28     | expr • '*' expr
+   29     | expr • ':' expr
+   30     | expr • '>' expr
+   30     | expr '>' expr •
+   31     | expr • '<' expr
+
+    $default  reduce using rule 30 (expr)
+
+
+State 68
+
+   43 exprFraction: ID •
+
+    $default  reduce using rule 43 (exprFraction)
+
+
+State 69
+
+   38 exprFraction: exprFraction • '+' exprFraction
+   38             | exprFraction '+' exprFraction •
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
+
+    '*'  shift, and go to state 43
+    ':'  shift, and go to state 44
+
+    $default  reduce using rule 38 (exprFraction)
 
 
 State 70
+
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   39             | exprFraction '-' exprFraction •
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
+
+    '*'  shift, and go to state 43
+    ':'  shift, and go to state 44
+
+    $default  reduce using rule 39 (exprFraction)
+
+
+State 71
+
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   40             | exprFraction '*' exprFraction •
+   41             | exprFraction • ':' exprFraction
+
+    $default  reduce using rule 40 (exprFraction)
+
+
+State 72
+
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
+   41             | exprFraction ':' exprFraction •
+
+    $default  reduce using rule 41 (exprFraction)
+
+
+State 73
+
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
+   45 exprBool: exprFraction '<' exprFraction •
+
+    '+'  shift, and go to state 41
+    '-'  shift, and go to state 42
+    '*'  shift, and go to state 43
+    ':'  shift, and go to state 44
+
+    $default  reduce using rule 45 (exprBool)
+
+
+State 74
+
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
+   44 exprBool: exprFraction '>' exprFraction •
+
+    '+'  shift, and go to state 41
+    '-'  shift, and go to state 42
+    '*'  shift, and go to state 43
+    ':'  shift, and go to state 44
+
+    $default  reduce using rule 44 (exprBool)
+
+
+State 75
+
+   49 exprStrings: ID •
+
+    $default  reduce using rule 49 (exprStrings)
+
+
+State 76
+
+   46 exprStrings: exprStrings • '+' exprStrings
+   46            | exprStrings '+' exprStrings •
+   47            | exprStrings • '*' expr
+
+    '*'  shift, and go to state 48
+
+    $default  reduce using rule 46 (exprStrings)
+
+
+State 77
+
+   26 expr: expr • '+' expr
+   27     | expr • '-' expr
+   28     | expr • '*' expr
+   29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   47 exprStrings: exprStrings '*' expr •
+
+    '-'  shift, and go to state 36
+    ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+
+    $default  reduce using rule 47 (exprStrings)
+
+
+State 78
 
     5 line: TYPE ID '=' expr •
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
+   30     | expr • '>' expr
+   31     | expr • '<' expr
 
     '+'  shift, and go to state 35
     '-'  shift, and go to state 36
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
 
     $default  reduce using rule 5 (line)
 
 
-State 71
+State 79
 
     7 line: TYPE ID '=' exprFraction •
-   36 exprFraction: exprFraction • '+' exprFraction
-   37             | exprFraction • '-' exprFraction
-   38             | exprFraction • '*' exprFraction
-   39             | exprFraction • ':' exprFraction
+   38 exprFraction: exprFraction • '+' exprFraction
+   39             | exprFraction • '-' exprFraction
+   40             | exprFraction • '*' exprFraction
+   41             | exprFraction • ':' exprFraction
 
-    '+'  shift, and go to state 39
-    '-'  shift, and go to state 40
-    '*'  shift, and go to state 41
-    ':'  shift, and go to state 42
+    '+'  shift, and go to state 41
+    '-'  shift, and go to state 42
+    '*'  shift, and go to state 43
+    ':'  shift, and go to state 44
 
     $default  reduce using rule 7 (line)
 
 
-State 72
+State 80
 
     6 line: TYPE ID '=' exprStrings •
-   42 exprStrings: exprStrings • '+' exprStrings
-   43            | exprStrings • '*' expr
+   46 exprStrings: exprStrings • '+' exprStrings
+   47            | exprStrings • '*' expr
 
-    '+'  shift, and go to state 43
-    '*'  shift, and go to state 44
+    '+'  shift, and go to state 47
+    '*'  shift, and go to state 48
 
     $default  reduce using rule 6 (line)
 
 
-State 73
+State 81
 
-   31 expr: LOG '(' expr ')' •
+   33 expr: LOG '(' expr ')' •
 
-    $default  reduce using rule 31 (expr)
-
-
-State 74
-
-   30 expr: RAD '(' expr ')' •
-
-    $default  reduce using rule 30 (expr)
+    $default  reduce using rule 33 (expr)
 
 
-State 75
+State 82
 
-   32 expr: MOD '(' expr ',' • expr ')'
+   32 expr: RAD '(' expr ')' •
 
-    ID    shift, and go to state 52
+    $default  reduce using rule 32 (expr)
+
+
+State 83
+
+   34 expr: MOD '(' expr ',' • expr ')'
+
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 78
+    expr  go to state 86
 
 
-State 76
+State 84
 
-   33 expr: POW '(' expr ',' • expr ')'
+   35 expr: POW '(' expr ',' • expr ')'
 
-    ID    shift, and go to state 52
+    ID    shift, and go to state 56
     REAL  shift, and go to state 3
     LOG   shift, and go to state 7
     RAD   shift, and go to state 8
     MOD   shift, and go to state 9
     POW   shift, and go to state 10
 
-    expr  go to state 79
+    expr  go to state 87
 
 
-State 77
+State 85
 
     2 prog: line ';' '\n' prog •
 
     $default  reduce using rule 2 (prog)
 
 
-State 78
+State 86
 
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
-   32     | MOD '(' expr ',' expr • ')'
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   34     | MOD '(' expr ',' expr • ')'
 
     '+'  shift, and go to state 35
     '-'  shift, and go to state 36
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
-    ')'  shift, and go to state 80
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+    ')'  shift, and go to state 88
 
 
-State 79
+State 87
 
    26 expr: expr • '+' expr
    27     | expr • '-' expr
    28     | expr • '*' expr
    29     | expr • ':' expr
-   33     | POW '(' expr ',' expr • ')'
+   30     | expr • '>' expr
+   31     | expr • '<' expr
+   35     | POW '(' expr ',' expr • ')'
 
     '+'  shift, and go to state 35
     '-'  shift, and go to state 36
     '*'  shift, and go to state 37
     ':'  shift, and go to state 38
-    ')'  shift, and go to state 81
+    '<'  shift, and go to state 39
+    '>'  shift, and go to state 40
+    ')'  shift, and go to state 89
 
 
-State 80
+State 88
 
-   32 expr: MOD '(' expr ',' expr ')' •
+   34 expr: MOD '(' expr ',' expr ')' •
 
-    $default  reduce using rule 32 (expr)
+    $default  reduce using rule 34 (expr)
 
 
-State 81
+State 89
 
-   33 expr: POW '(' expr ',' expr ')' •
+   35 expr: POW '(' expr ',' expr ')' •
 
-    $default  reduce using rule 33 (expr)
+    $default  reduce using rule 35 (expr)

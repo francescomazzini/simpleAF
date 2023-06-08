@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 int TokenCount = 0;
 char* removeFirstAndLasChar(const char* str);
 %}
@@ -11,7 +12,6 @@ digit [0-9]
 letter [a-zA-Z]
 INT {digit}+
 REAL {INT}(\.{INT})?
-BOOLEAN {REAL}(\>|\<){REAL}
 STRING \"({letter}|{digit})*\"
 ID {letter}({letter}|{digit})*  
 FRACTION {INT}\/{INT}
@@ -55,8 +55,7 @@ end {return END;}
 {ID}    {yylval.lexeme = strdup(yytext);
           return ID;}
         
-{BOOLEAN} {yylval.lexeme =strdup(yytext);
-             return BOOLEAN;}
+
 
           
 "+"     {return '+';}
@@ -68,6 +67,8 @@ end {return END;}
 ","     {return ',';}
 ";"     {return ';';}
 "="     {return '=';}
+">"     {return '>';}
+"<"     {return '<';}
 \n    {return '\n';}
 
 
