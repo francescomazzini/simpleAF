@@ -11,6 +11,7 @@ digit [0-9]
 letter [a-zA-Z]
 INT {digit}+
 REAL {INT}(\.{INT})?
+BOOLEAN {REAL}(\>|\<){REAL}
 STRING \"({letter}|{digit})*\"
 ID {letter}({letter}|{digit})*  
 FRACTION {INT}\/{INT}
@@ -53,6 +54,9 @@ end {return END;}
 
 {ID}    {yylval.lexeme = strdup(yytext);
           return ID;}
+        
+{BOOLEAN} {yylval.lexeme =strdup(yytext);
+             return BOOLEAN;}
 
           
 "+"     {return '+';}

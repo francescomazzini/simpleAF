@@ -96,6 +96,7 @@ struct symbolTable SYMBOL_TABLE;
 %token FROM
 %token INCREASING
 %token DECREASING
+%token BOOLEAN
 
 %left '+' '-'
 %left '*' ':'
@@ -139,6 +140,7 @@ line  :  END  '\n'       {exit(0);}
 
                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
+      | BOOLEAN {printf("Boolean recognized\n"); exit(0);}
       | expr     {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction    {printf("Result: %s\n", $1); exit(0);}
       | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
