@@ -66,6 +66,7 @@ end {return END;}
 ")"     {return ')';}
 ","     {return ',';}
 ";"     {return ';';}
+"=="    {return EQ;}
 "="     {return '=';}
 ">"     {return '>';}
 "<"     {return '<';}

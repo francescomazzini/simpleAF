@@ -101,11 +101,14 @@ struct symbolTable SYMBOL_TABLE;
 %token INCREASING
 %token DECREASING
 %token BOOLEAN
+%token EQ
+
 
 %left '+' '-'
 %left '*' ':'
 %left '<' '>'
 %left ';' '\n'
+
 
 %start scope
 
@@ -148,7 +151,7 @@ line  :  END  '\n'       {exit(0);}
       | expr     {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction    {printf("Result: %s\n", $1); exit(0);}
       | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
-      | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");exit(0);}
+      | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");exit(0);} 
       | STRING   {printf("String recognized: \"%s\"\n", $1 ); exit(0);}
       | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
@@ -166,8 +169,6 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '-' expr  {$$ = $1 - $3;}
       | expr '*' expr  {$$ = $1 * $3;}
       | expr ':' expr  {$$ = $1 / $3;}
-      | expr '>' expr  {$$ = $1 > $3;}
-      | expr '<' expr  {$$ = $1 > $3;}
       | RAD '(' expr ')' {$$ = sqrt($3);}
       | LOG '(' expr ')' {$$ = log($3)/log(10);}
       | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
@@ -187,8 +188,6 @@ exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
                         $$ = charValue;}
       ;
 
-exprBool: exprFraction '>' exprFraction {$$ =booleanOfFractionsBigger($1,$3);}
-        | exprFraction '<' exprFraction {$$ =booleanOfFractionsSmaller($1,$3);}
 exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
         | exprStrings '*' expr {$$ = multiplyStrings($1,$3);}
         | STRING {$$ = $1;}
@@ -196,6 +195,13 @@ exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
                         $$ = charValue;}
         ;
 
+exprBool: exprFraction '>' exprFraction {$$ =booleanOfFractionsBigger($1,$3);}
+        | exprFraction '<' exprFraction {$$ =booleanOfFractionsSmaller($1,$3);}
+        | exprStrings EQ exprStrings {$$ = (strcmp($1,$3) == 0);}
+        | expr EQ expr {$$ = $1 == $3;}
+        | exprFraction EQ exprFraction {$$ = (strcmp($1,$3) == 0);}
+        | expr '>' expr  {$$ = $1 > $3;}
+        | expr '<' expr  {$$ = $1 > $3;}
         
 
 %%
@@ -412,7 +418,7 @@ bool booleanOfFractionsSmaller(char* a, char* b){
     float numberA = (float)numA/denA;
    
     float numberB = (float)numB / denB;
-    
+
     return numberA<numberB;
 }
 
