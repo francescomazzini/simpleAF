@@ -63,6 +63,9 @@ struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id);
 void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType, void* value);
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType);
+void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id);
+char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id );
+
 
 struct symbolTable SYMBOL_TABLE;
  
@@ -72,11 +75,13 @@ struct symbolTable SYMBOL_TABLE;
 %union {
        char* lexeme;			//name of an identifier
        float value;			//attribute of a token of type NUM
+       struct symbolTableEntry id;
        }
 
 %type <value> expr
 %type <lexeme> exprStrings
 %type <lexeme> exprFraction
+%type <id> exprGeneral
 
 %token END
 %token <lexeme> ID
@@ -113,6 +118,16 @@ prog  : line  ';' '\n' prog
       ;
 
 line  :  END  '\n'       {exit(0);}
+      | exprGeneral         { 
+                                if(strcmp($1.type, "STRING") == 0)
+                                    printf("Value: \"%s\"", $1.value.stringValue);
+                                else if (strcmp($1.type, "FRACTION") == 0)
+                                    printf("Value: %s", $1.value.stringValue);
+                                else if (strcmp($1.type, "REAL") == 0) {
+                                    printf("Value: %f", $1.value.floatValue);
+                                }
+                                exit(0);
+                            }
       | TYPE ID '=' expr  { 
                                 typeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
                                  printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
@@ -145,7 +160,7 @@ line  :  END  '\n'       {exit(0);}
       | exprFraction    {printf("Result: %s\n", $1); exit(0);}
       | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
       | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
-      | ID             {printf("IDentifier: %s\n", $1); exit(0);}
+    //   | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
       | THEN             {printf("Recognized: then\n"); exit(0);}
       | ELSE             {printf("Recognized: else\n"); exit(0);}
@@ -157,6 +172,18 @@ line  :  END  '\n'       {exit(0);}
       | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
       
       ;
+
+exprGeneral : ID                 { 
+                                    strcpy($$.type, getValueType(SYMBOL_TABLE, $1));
+                                    if(strcmp($$.type, "STRING") == 0 || strcmp($$.type, "FRACTION") == 0)
+                                        strcpy($$.value.stringValue, getValueWithoutTypeChecking(SYMBOL_TABLE, $1));
+                                    else if (strcmp($$.type, "REAL") == 0) {
+                                        float* floatValue = getValueWithoutTypeChecking(SYMBOL_TABLE, $1);
+                                        $$.value.floatValue = *floatValue;
+                                    }
+                                } 
+    ;
+
 expr  : expr '+' expr  {$$ = $1 + $3;}
       | expr '-' expr  {$$ = $1 - $3;}
       | expr '*' expr  {$$ = $1 * $3;}
@@ -166,8 +193,8 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
       | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
       | POW '(' expr ',' expr ')' {$$ =pow($3,$5);}
       | REAL            {$$ = $1;}
-      | ID             {float* floatValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL");
-                        $$ = *floatValue;}
+    //   | ID             {float* floatValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL");
+    //                     $$ = *floatValue;}
 
       ;
 exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
@@ -175,15 +202,15 @@ exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
       | exprFraction ':' exprFraction  {$$ = divFractions($1,$3);}
       | FRACTION            {$$ = $1;}
-      | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION");
-                        $$ = charValue;}
+    //   | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION");
+    //                     $$ = charValue;}
       ;
 
 exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
         | exprStrings '*' expr {$$ = multiplyStrings($1,$3);}
         | STRING {$$ = $1;}
-        | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING");
-                        $$ = charValue;}
+        // | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING");
+        //                 $$ = charValue;}
         ;
 
         
@@ -576,5 +603,36 @@ void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* 
     }
 
     return NULL;
+
+}
+
+void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id) {
+
+    struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
+
+    if(entry == NULL) {
+        printf("ERROR! ID %s not found", id);
+        exit(1);
+    }
+
+    if(strcmp(entry->type, "REAL")==0){
+        return (void*)&(entry->value.floatValue);
+    }else if(strcmp(entry->type, "STRING")==0){
+        return (void*)&(entry->value.stringValue);
+    }else if (strcmp(entry->type, "FRACTION")==0){
+        return (void*)&(entry->value.stringValue);
+    }else{
+        printf("error type");
+    }
+
+    return NULL;
+
+}
+
+char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id ) {
+
+    struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
+
+    return entry->type;
 
 }
