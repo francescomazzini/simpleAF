@@ -65,6 +65,10 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType);
 void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id);
 char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id );
+void copyIDFromName (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, char* id2 );
+void copyIDFromFloat (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, float id2 );
+void copyID (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, struct symbolTableEntry id2 );
+struct symbolTableEntry sumID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
 
 
 struct symbolTable SYMBOL_TABLE;
@@ -78,7 +82,7 @@ struct symbolTable SYMBOL_TABLE;
        struct symbolTableEntry id;
        }
 
-%type <value> expr
+// %type <value> expr
 %type <lexeme> exprStrings
 %type <lexeme> exprFraction
 %type <id> exprGeneral
@@ -156,7 +160,7 @@ line  :  END  '\n'       {exit(0);}
                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
       | BOOLEAN {printf("Boolean recognized\n"); exit(0);}
-      | expr     {printf("Result: %5.2f\n", $1); exit(0);}
+    //   | expr     {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction    {printf("Result: %s\n", $1); exit(0);}
       | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
       | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
@@ -173,26 +177,21 @@ line  :  END  '\n'       {exit(0);}
       
       ;
 
-exprGeneral : ID                 { 
-                                    strcpy($$.type, getValueType(SYMBOL_TABLE, $1));
-                                    if(strcmp($$.type, "STRING") == 0 || strcmp($$.type, "FRACTION") == 0)
-                                        strcpy($$.value.stringValue, getValueWithoutTypeChecking(SYMBOL_TABLE, $1));
-                                    else if (strcmp($$.type, "REAL") == 0) {
-                                        float* floatValue = getValueWithoutTypeChecking(SYMBOL_TABLE, $1);
-                                        $$.value.floatValue = *floatValue;
-                                    }
-                                } 
+exprGeneral : 
+     exprGeneral '+' exprGeneral { copyID(SYMBOL_TABLE, &$$, sumID(SYMBOL_TABLE, $1, $3)) } 
+    | ID                          { copyIDFromName(SYMBOL_TABLE, &$$, $1); } 
+    | REAL                      { copyIDFromFloat(SYMBOL_TABLE, &$$, $1); }
     ;
 
-expr  : expr '+' expr  {$$ = $1 + $3;}
-      | expr '-' expr  {$$ = $1 - $3;}
-      | expr '*' expr  {$$ = $1 * $3;}
-      | expr ':' expr  {$$ = $1 / $3;}
-      | RAD '(' expr ')' {$$ = sqrt($3);}
-      | LOG '(' expr ')' {$$ = log($3)/log(10);}
-      | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
-      | POW '(' expr ',' expr ')' {$$ =pow($3,$5);}
-      | REAL            {$$ = $1;}
+// expr  : expr '+' expr  {$$ = $1 + $3;}
+//       | expr '-' expr  {$$ = $1 - $3;}
+//       | expr '*' expr  {$$ = $1 * $3;}
+//       | expr ':' expr  {$$ = $1 / $3;}
+//       | RAD '(' expr ')' {$$ = sqrt($3);}
+//       | LOG '(' expr ')' {$$ = log($3)/log(10);}
+//       | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
+//       | POW '(' expr ',' expr ')' {$$ =pow($3,$5);}
+//       | REAL            {$$ = $1;}
     //   | ID             {float* floatValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL");
     //                     $$ = *floatValue;}
 
@@ -207,7 +206,7 @@ exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       ;
 
 exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
-        | exprStrings '*' expr {$$ = multiplyStrings($1,$3);}
+        | exprStrings '*' REAL {$$ = multiplyStrings($1,$3);}
         | STRING {$$ = $1;}
         // | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING");
         //                 $$ = charValue;}
@@ -634,5 +633,65 @@ char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id ) {
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
 
     return entry->type;
+
+}
+
+void copyIDFromName (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, char* id2 ) {
+
+    strcpy(id1->type, getValueType(SYMBOL_TABLE, id2));
+    if(strcmp(id1->type, "STRING") == 0 || strcmp(id1->type, "FRACTION") == 0)
+        strcpy(id1->value.stringValue, getValueWithoutTypeChecking(SYMBOL_TABLE, id2));
+    else if (strcmp(id1->type, "REAL") == 0) {
+        float* floatValue = getValueWithoutTypeChecking(SYMBOL_TABLE, id2);
+        id1->value.floatValue = *floatValue;
+    }
+
+}
+
+void copyIDFromFloat (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, float id2 ) {
+
+    strcpy(id1->type, "REAL");
+    id1->value.floatValue = id2;
+
+}
+
+void copyID (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, struct symbolTableEntry id2 ) {
+
+    strcpy(id1->type, id2.type);
+    if(strcmp(id1->type, "STRING") == 0 || strcmp(id1->type, "FRACTION") == 0)
+        strcpy(id1->value.stringValue, id2.value.stringValue);
+    else if (strcmp(id1->type, "REAL") == 0) {
+        float floatValue = id2.value.floatValue;
+        id1->value.floatValue = floatValue;
+    }
+
+}
+
+struct symbolTableEntry sumID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2) {
+
+    struct symbolTableEntry result;
+    strcpy(result.type, "");
+
+    if(strcmp(id1.type, "STRING") == 0 && strcmp(id2.type, "STRING") == 0) {
+        char* val1 = id1.value.stringValue;
+        char* val2 = id2.value.stringValue;
+        strcpy(result.type, "STRING");
+        strcpy(result.value.stringValue, concatenateStrings(val1, val2));
+    } else if (strcmp(id1.type, "FRACTION") == 0 && strcmp(id2.type, "FRACTION") == 0) {
+        char* val1 = id1.value.stringValue;
+        char* val2 = id2.value.stringValue;
+        strcpy(result.type, "FRACTION");
+        strcpy(result.value.stringValue, sumFractions(val1, val2));
+    } else if (strcmp(id1.type, "REAL") == 0 && strcmp(id2.type, "REAL") == 0) {
+        float val1 = id1.value.floatValue;
+        float val2 = id2.value.floatValue;
+        strcpy(result.type, "REAL");
+        result.value.floatValue = val1 + val2;
+    } else {
+        printf("MISMATCH TYPE ERROR");
+        exit(1);
+    }
+    
+    return result;
 
 }
