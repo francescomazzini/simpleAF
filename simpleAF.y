@@ -60,7 +60,7 @@ void printSymbolTableEntry (struct symbolTable* symbol);
 struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id);
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
-void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id);
+void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id);
 void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType, void* value);
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType);
 void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id);
@@ -136,18 +136,22 @@ line  :  END  '\n'       {exit(0);}
                                 else if (strcmp($1.type, "REAL") == 0) {
                                     printf("Value: %f", $1.value.floatValue);
                                 }
-                                exit(0);
                             }
-      | TYPE ID '=' REAL  { 
-                                typeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
-                                 printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
-                              }
-      | TYPE ID '=' STRING  { 
-                            typeChecking(SYMBOL_TABLE,$1,"STRING",(void*)$4,$2);
-                                printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
-                            }
-      | TYPE ID '=' FRACTION { 
-                            typeChecking(SYMBOL_TABLE,$1,"FRACTION",(void*)$4,$2);
+    //   | TYPE ID '=' REAL  { 
+    //                             addWithTypeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
+    //                              printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
+    //                           }
+    //   | TYPE ID '=' STRING  { 
+    //                         addWithTypeChecking(SYMBOL_TABLE,$1,"STRING",(void*)$4,$2);
+    //                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
+    //                         }
+    //   | TYPE ID '=' FRACTION { 
+    //                         addWithTypeChecking(SYMBOL_TABLE,$1,"FRACTION",(void*)$4,$2);
+    //                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
+    //                         }
+
+      | TYPE ID '=' exprGeneral { 
+                                addWithTypeChecking(SYMBOL_TABLE,$1,$4,$2);
                                 printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
                             }
 
@@ -169,7 +173,7 @@ line  :  END  '\n'       {exit(0);}
     //   | expr     {printf("Result: %5.2f\n", $1); exit(0);}
     //   | exprFraction    {printf("Result: %s\n", $1); exit(0);}
     //   | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
-      | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
+    //   | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
     //   | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
       | THEN             {printf("Recognized: then\n"); exit(0);}
@@ -197,37 +201,7 @@ exprGeneral :
     | FRACTION                   { copyIDFromFraction(SYMBOL_TABLE, &$$, $1); }
     | STRING                    { copyIDFromString(SYMBOL_TABLE, &$$, $1);}
     ;
-
-// expr  : expr '+' expr  {$$ = $1 + $3;}
-//       | expr '-' expr  {$$ = $1 - $3;}
-//       | expr '*' expr  {$$ = $1 * $3;}
-//       | expr ':' expr  {$$ = $1 / $3;}
-//       | RAD '(' expr ')' {$$ = sqrt($3);}
-//       | LOG '(' expr ')' {$$ = log($3)/log(10);}
-//       | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
-//       | POW '(' expr ',' expr ')' {$$ =pow($3,$5);}
-//       | REAL            {$$ = $1;}
-//       | ID             {float* floatValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL");
-//                     $$ = *floatValue;}
-
-    //   ;
-// exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
-//       | exprFraction '-' exprFraction  {$$ = subFractions($1,$3);}
-//       | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
-//       | exprFraction ':' exprFraction  {$$ = divFractions($1,$3);}
-//       | FRACTION            {$$ = $1;}
-    //   | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION");
-    //                     $$ = charValue;}
-    //   ;
-
-// exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
-//         | exprStrings '*' REAL {$$ = multiplyStrings($1,$3);}
-//         | STRING {$$ = $1;}
-        // | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING");
-        //                 $$ = charValue;}
-        // ;
-
-        
+       
 
 %%
 
@@ -543,15 +517,29 @@ struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id){
 
 //--------- util symbol table ---------
 
-void typeChecking(struct symbolTable SYMBOL_TABLE,char* actualType, char* supposedType,void* value,char* id){
+void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id){
 
-    if(strcmp(actualType, supposedType) != 0) {
+    if(strcmp(value.type, supposedType) != 0) {
         printf("Error type");
         exit(1);
     } else {
-        addSymbolTable(&SYMBOL_TABLE, id, value, actualType);
-    }
 
+        struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
+
+        if(entry != NULL) {
+
+            printf("ERROR! ID %s is already declared", id);
+            exit(1);
+        
+        } else {
+            if(strcmp(value.type, "STRING") == 0 || strcmp(value.type, "FRACTION") == 0) {
+                addSymbolTable(&SYMBOL_TABLE, id, (void*)value.value.stringValue, value.type);
+            } else if (strcmp(value.type, "REAL") == 0 ) {
+                addSymbolTable(&SYMBOL_TABLE, id, (void*)&value.value.floatValue, value.type);
+            }
+        }
+
+    } 
 
 }
 
