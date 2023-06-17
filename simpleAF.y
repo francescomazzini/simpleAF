@@ -50,6 +50,8 @@ int stringToNumberStart(const char* str);
 int lcm(int a, int b);
 int gcd(int a, int b);
 char* multiplyStrings (const char* str1, float mulNum);
+bool booleanOfFractionsBigger(char* a, char* b);
+bool booleanOfFractionsSmaller(char* a, char* b);
 
 struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type);
 void createSymbolTable(struct symbolTable *table);
@@ -72,11 +74,13 @@ struct symbolTable SYMBOL_TABLE;
 %union {
        char* lexeme;			//name of an identifier
        float value;			//attribute of a token of type NUM
+       bool boolean;      //attribute of a to boolean
        }
 
 %type <value> expr
 %type <lexeme> exprStrings
 %type <lexeme> exprFraction
+%type <boolean> exprBool
 
 %token END
 %token <lexeme> ID
@@ -97,10 +101,14 @@ struct symbolTable SYMBOL_TABLE;
 %token INCREASING
 %token DECREASING
 %token BOOLEAN
+%token EQ
+
 
 %left '+' '-'
 %left '*' ':'
+%left '<' '>'
 %left ';' '\n'
+
 
 %start scope
 
@@ -140,11 +148,11 @@ line  :  END  '\n'       {exit(0);}
 
                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
-      | BOOLEAN {printf("Boolean recognized\n"); exit(0);}
       | expr     {printf("Result: %5.2f\n", $1); exit(0);}
       | exprFraction    {printf("Result: %s\n", $1); exit(0);}
       | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
-      | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
+      | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");exit(0);} 
+      | STRING   {printf("String recognized: \"%s\"\n", $1 ); exit(0);}
       | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | IF             {printf("Recognized: if\n"); exit(0);}
       | THEN             {printf("Recognized: then\n"); exit(0);}
@@ -170,6 +178,7 @@ expr  : expr '+' expr  {$$ = $1 + $3;}
                         $$ = *floatValue;}
 
       ;
+
 exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
       | exprFraction '-' exprFraction  {$$ = subFractions($1,$3);}
       | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
@@ -186,6 +195,13 @@ exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
                         $$ = charValue;}
         ;
 
+exprBool: exprFraction '>' exprFraction {$$ =booleanOfFractionsBigger($1,$3);}
+        | exprFraction '<' exprFraction {$$ =booleanOfFractionsSmaller($1,$3);}
+        | exprStrings EQ exprStrings {$$ = (strcmp($1,$3) == 0);}
+        | expr EQ expr {$$ = $1 == $3;}
+        | exprFraction EQ exprFraction {$$ = (strcmp($1,$3) == 0);}
+        | expr '>' expr  {$$ = $1 > $3;}
+        | expr '<' expr  {$$ = $1 > $3;}
         
 
 %%
@@ -198,6 +214,7 @@ int main(void)
   createSymbolTable(&SYMBOL_TABLE);
   return yyparse();
 }
+
 
 
 
@@ -380,6 +397,32 @@ char* multiplyStrings(const char* str, float numTimes) {
 
     return result;
 }
+bool booleanOfFractionsBigger(char* a, char* b){
+    int numA = stringToNumberStart(a);
+    int denA = stringToNumberEnd(a);
+    int numB = stringToNumberStart(b);
+    int denB =stringToNumberEnd(b);
+
+    float numberA = (float)numA/denA;
+   
+    float numberB = (float)numB / denB;
+ 
+    return numberA>numberB;
+}
+bool booleanOfFractionsSmaller(char* a, char* b){
+    int numA = stringToNumberStart(a);
+    int denA = stringToNumberEnd(a);
+    int numB = stringToNumberStart(b);
+    int denB =stringToNumberEnd(b);
+
+    float numberA = (float)numA/denA;
+   
+    float numberB = (float)numB / denB;
+
+    return numberA<numberB;
+}
+
+
 
 
 /// - -  - -- - - - - -- - - -  SYMBOL TABLE - -- - - -- - - - - --
