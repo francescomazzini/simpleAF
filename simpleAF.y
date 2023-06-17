@@ -74,6 +74,10 @@ struct symbolTableEntry sumID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
 struct symbolTableEntry subID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
 struct symbolTableEntry mulID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
 struct symbolTableEntry divID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
+struct symbolTableEntry sqrtID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1);
+struct symbolTableEntry logID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1);
+struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
+struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
 
 
 struct symbolTable SYMBOL_TABLE;
@@ -184,6 +188,10 @@ exprGeneral :
     | exprGeneral '-' exprGeneral { copyID(SYMBOL_TABLE, &$$, subID(SYMBOL_TABLE, $1, $3)) }
     | exprGeneral '*' exprGeneral { copyID(SYMBOL_TABLE, &$$, mulID(SYMBOL_TABLE, $1, $3)) }
     | exprGeneral ':' exprGeneral { copyID(SYMBOL_TABLE, &$$, divID(SYMBOL_TABLE, $1, $3)) } 
+    | RAD '(' exprGeneral ')'              { copyID(SYMBOL_TABLE, &$$, sqrtID(SYMBOL_TABLE, $3)); }
+    | LOG '(' exprGeneral ')'               { copyID(SYMBOL_TABLE, &$$, logID(SYMBOL_TABLE, $3)); }
+    | MOD '(' exprGeneral ',' exprGeneral ')'             {copyID(SYMBOL_TABLE, &$$, modID(SYMBOL_TABLE, $3, $5));}
+    | POW '(' exprGeneral ',' exprGeneral ')'              {  copyID(SYMBOL_TABLE, &$$, powID(SYMBOL_TABLE, $3, $5)); }
     | ID                          { copyIDFromName(SYMBOL_TABLE, &$$, $1); } 
     | REAL                      { copyIDFromFloat(SYMBOL_TABLE, &$$, $1); }
     | FRACTION                   { copyIDFromFraction(SYMBOL_TABLE, &$$, $1); }
@@ -199,10 +207,10 @@ exprGeneral :
 //       | MOD '(' expr ',' expr ')' {$$ = (int)$3 % (int)$5;}
 //       | POW '(' expr ',' expr ')' {$$ =pow($3,$5);}
 //       | REAL            {$$ = $1;}
-    //   | ID             {float* floatValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL");
-    //                     $$ = *floatValue;}
+//       | ID             {float* floatValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL");
+//                     $$ = *floatValue;}
 
-      ;
+    //   ;
 // exprFraction: exprFraction '+' exprFraction  {$$ = sumFractions($1,$3);}
 //       | exprFraction '-' exprFraction  {$$ = subFractions($1,$3);}
 //       | exprFraction '*' exprFraction  {$$ = mulFractions($1,$3);}
@@ -210,14 +218,14 @@ exprGeneral :
 //       | FRACTION            {$$ = $1;}
     //   | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION");
     //                     $$ = charValue;}
-      ;
+    //   ;
 
 // exprStrings: exprStrings '+' exprStrings {$$ = concatenateStrings($1,$3);}
 //         | exprStrings '*' REAL {$$ = multiplyStrings($1,$3);}
 //         | STRING {$$ = $1;}
         // | ID             {char* charValue = getValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING");
         //                 $$ = charValue;}
-        ;
+        // ;
 
         
 
@@ -799,6 +807,104 @@ struct symbolTableEntry divID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
         float val2 = id2.value.floatValue;
         strcpy(result.type, "REAL");
         result.value.floatValue = val1 / val2;
+    } else {
+        printf("MISMATCH TYPE ERROR");
+        exit(1);
+    }
+    
+    return result;
+
+}
+
+struct symbolTableEntry sqrtID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1) {
+
+    struct symbolTableEntry result;
+    strcpy(result.type, "");
+
+    if(strcmp(id1.type, "STRING") == 0 ) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "FRACTION") == 0) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "REAL") == 0 ) {
+        float val1 = id1.value.floatValue;
+        strcpy(result.type, "REAL");
+        result.value.floatValue = sqrt(val1);
+    } else {
+        printf("MISMATCH TYPE ERROR");
+        exit(1);
+    }
+    
+    return result;
+
+}
+
+struct symbolTableEntry logID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1) {
+
+    struct symbolTableEntry result;
+    strcpy(result.type, "");
+
+    if(strcmp(id1.type, "STRING") == 0 ) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "FRACTION") == 0) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "REAL") == 0 ) {
+        float val1 = id1.value.floatValue;
+        strcpy(result.type, "REAL");
+        result.value.floatValue = log(val1)/log(10);
+    } else {
+        printf("MISMATCH TYPE ERROR");
+        exit(1);
+    }
+    
+    return result;
+
+}
+
+struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2){
+
+    struct symbolTableEntry result;
+    strcpy(result.type, "");
+
+    if(strcmp(id1.type, "STRING") == 0 ) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "FRACTION") == 0) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "REAL") == 0 ) {
+        float val1 = id1.value.floatValue;
+        float val2 = id2.value.floatValue;
+        strcpy(result.type, "REAL");
+        result.value.floatValue = (int)val1 % (int)val2;
+    } else {
+        printf("MISMATCH TYPE ERROR");
+        exit(1);
+    }
+    
+    return result;
+
+}
+
+struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2){
+
+    struct symbolTableEntry result;
+    strcpy(result.type, "");
+
+    if(strcmp(id1.type, "STRING") == 0 ) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "FRACTION") == 0) {
+        printf("INCORRECT OPERATION FOR THIS TYPE");
+        exit(1);
+    } else if (strcmp(id1.type, "REAL") == 0 ) {
+        float val1 = id1.value.floatValue;
+        float val2 = id2.value.floatValue;
+        strcpy(result.type, "REAL");
+        result.value.floatValue = pow(val1,val2);
     } else {
         printf("MISMATCH TYPE ERROR");
         exit(1);
