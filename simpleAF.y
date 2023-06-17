@@ -80,6 +80,7 @@ struct symbolTableEntry sqrtID(struct symbolTable SYMBOL_TABLE,  struct symbolTa
 struct symbolTableEntry logID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1);
 struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
 struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
+bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2, char operator);
 
 
 struct symbolTable SYMBOL_TABLE;
@@ -160,7 +161,7 @@ line  :  END  '\n'       {exit(0);}
     //   | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
     //   | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
     //   | ID             {printf("IDentifier: %s\n", $1); exit(0);}
-      | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");exit(0);} 
+      | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");} 
       | IF             {printf("Recognized: if\n"); exit(0);}
       | THEN             {printf("Recognized: then\n"); exit(0);}
       | ELSE             {printf("Recognized: else\n"); exit(0);}
@@ -188,13 +189,15 @@ exprGeneral :
     | STRING                    { copyIDFromString(SYMBOL_TABLE, &$$, $1);}
     ;
 
-exprBool: exprFraction '>' exprFraction {$$ =booleanOfFractionsBigger($1,$3);}
-    | exprFraction '<' exprFraction {$$ =booleanOfFractionsSmaller($1,$3);}
-    | exprStrings EQ exprStrings {$$ = (strcmp($1,$3) == 0);}
-    | expr EQ expr {$$ = $1 == $3;}
-    | exprFraction EQ exprFraction {$$ = (strcmp($1,$3) == 0);}
-    | expr '>' expr  {$$ = $1 > $3;}
-    | expr '<' expr  {$$ = $1 > $3;}
+exprBool: 
+        exprGeneral '>' exprGeneral {$$ = boolID(SYMBOL_TABLE,$1,$3, '>');}
+    |   exprGeneral '<' exprGeneral {$$ = boolID(SYMBOL_TABLE,$1,$3, '<');}
+    |   exprGeneral EQ exprGeneral {$$ = boolID(SYMBOL_TABLE,$1,$3, '=');}
+    // | exprStrings EQ exprStrings {$$ = (strcmp($1,$3) == 0);}
+    // | expr EQ expr {$$ = $1 == $3;}
+    // | exprFraction EQ exprFraction {$$ = (strcmp($1,$3) == 0);}
+    // | expr '>' expr  {$$ = $1 > $3;}
+    // | expr '<' expr  {$$ = $1 > $3;}
 ;
     
 
@@ -878,13 +881,13 @@ struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTab
     struct symbolTableEntry result;
     strcpy(result.type, "");
 
-    if(strcmp(id1.type, "STRING") == 0 ) {
+    if(strcmp(id1.type, "STRING") == 0  && strcmp(id2.type, "STRING") == 0) {
         printf("INCORRECT OPERATION FOR THIS TYPE");
         exit(1);
-    } else if (strcmp(id1.type, "FRACTION") == 0) {
+    } else if (strcmp(id1.type, "FRACTION") == 0  && strcmp(id2.type, "FRACTION") == 0) {
         printf("INCORRECT OPERATION FOR THIS TYPE");
         exit(1);
-    } else if (strcmp(id1.type, "REAL") == 0 ) {
+    } else if (strcmp(id1.type, "REAL") == 0  && strcmp(id2.type, "REAL") == 0) {
         float val1 = id1.value.floatValue;
         float val2 = id2.value.floatValue;
         strcpy(result.type, "REAL");
@@ -903,13 +906,13 @@ struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
     struct symbolTableEntry result;
     strcpy(result.type, "");
 
-    if(strcmp(id1.type, "STRING") == 0 ) {
+    if(strcmp(id1.type, "STRING") == 0  && strcmp(id2.type, "STRING") == 0) {
         printf("INCORRECT OPERATION FOR THIS TYPE");
         exit(1);
-    } else if (strcmp(id1.type, "FRACTION") == 0) {
+    } else if (strcmp(id1.type, "FRACTION") == 0  && strcmp(id2.type, "FRACTION") == 0) {
         printf("INCORRECT OPERATION FOR THIS TYPE");
         exit(1);
-    } else if (strcmp(id1.type, "REAL") == 0 ) {
+    } else if (strcmp(id1.type, "REAL") == 0  && strcmp(id2.type, "REAL") == 0) {
         float val1 = id1.value.floatValue;
         float val2 = id2.value.floatValue;
         strcpy(result.type, "REAL");
@@ -920,5 +923,50 @@ struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
     }
     
     return result;
+
+}
+
+bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2, char operator){
+
+    struct symbolTableEntry result;
+    strcpy(result.type, "");
+
+    if(strcmp(id1.type, "STRING") == 0  && strcmp(id2.type, "STRING") == 0) {
+        if(operator == '=')
+            return strcmp(id1.value.stringValue, id2.value.stringValue) == 0;
+        else {
+            printf("INCORRECT OPERATION FOR THIS TYPE");
+            exit(1);
+        }
+    } else if (strcmp(id1.type, "FRACTION") == 0  && strcmp(id2.type, "FRACTION") == 0) {
+        switch(operator) {
+            case '>' :
+                return booleanOfFractionsBigger(id1.value.stringValue, id2.value.stringValue);
+            case '<' :
+                return booleanOfFractionsSmaller(id1.value.stringValue, id2.value.stringValue);
+            case '=':
+                return strcmp(id1.value.stringValue, id2.value.stringValue) == 0;
+            default:
+                printf("INCORRECT OPERATION FOR THIS TYPE");
+                exit(1);
+        }        
+    } else if (strcmp(id1.type, "REAL") == 0  && strcmp(id2.type, "REAL") == 0) {
+        switch(operator) {
+            case '>' :
+                return id1.value.floatValue > id2.value.floatValue;
+            case '<' :
+                return id1.value.floatValue < id2.value.floatValue;
+            case '=':
+                return id1.value.floatValue == id2.value.floatValue;
+            default:
+                printf("INCORRECT OPERATION FOR THIS TYPE");
+                exit(1);
+        } 
+    } else {
+        printf("MISMATCH TYPE ERROR");
+        exit(1);
+    }
+    
+    return 0;
 
 }
