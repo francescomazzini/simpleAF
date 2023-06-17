@@ -61,7 +61,7 @@ struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id);
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
 void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id);
-void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType, void* value);
+void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  struct symbolTableEntry value);
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType);
 void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id);
 char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id );
@@ -137,35 +137,12 @@ line  :  END  '\n'       {exit(0);}
                                     printf("Value: %f", $1.value.floatValue);
                                 }
                             }
-    //   | TYPE ID '=' REAL  { 
-    //                             addWithTypeChecking(SYMBOL_TABLE,$1,"REAL",(void*)&$4,$2);
-    //                              printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
-    //                           }
-    //   | TYPE ID '=' STRING  { 
-    //                         addWithTypeChecking(SYMBOL_TABLE,$1,"STRING",(void*)$4,$2);
-    //                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
-    //                         }
-    //   | TYPE ID '=' FRACTION { 
-    //                         addWithTypeChecking(SYMBOL_TABLE,$1,"FRACTION",(void*)$4,$2);
-    //                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
-    //                         }
-
       | TYPE ID '=' exprGeneral { 
                                 addWithTypeChecking(SYMBOL_TABLE,$1,$4,$2);
                                 printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
                             }
-
-      | ID '=' REAL  { 
-                           updateValueWithTypeChecking(SYMBOL_TABLE, $1, "REAL", (void*)&$3);
-
-                            printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
-                        }
-      | ID '=' STRING  { 
-                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, "STRING", (void*)$3);
-
-                            printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));                        }
-      | ID '=' FRACTION  { 
-                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, "FRACTION", (void*)$3);
+      | ID '=' exprGeneral  { 
+                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, $3);
 
                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
@@ -183,7 +160,7 @@ line  :  END  '\n'       {exit(0);}
       | FROM             {printf("Recognized: from\n"); exit(0);}
       | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
       | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
-      | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
+    //   | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
       
       ;
 
@@ -543,7 +520,7 @@ void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, st
 
 }
 
-void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType, void* value) {
+void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  struct symbolTableEntry value) {
 
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
 
@@ -552,24 +529,23 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char
         exit(1);
     }
     
-    if(strcmp(entry->type, actualType) != 0) {
+    if(strcmp(entry->type, value.type) != 0) {
         printf("TYPE ERROR");
         exit(1);
     }
 
-    union Value tempValue;
+    // union Value tempValue;
 
-    if(strcmp(actualType, "REAL")==0){
-      tempValue.floatValue = *((float*)value);
-      entry->value = tempValue;
-    }else if(strcmp(actualType, "STRING")==0){
-        strncpy(tempValue.stringValue, (char*)value,NAME_MAX-1);
-        tempValue.stringValue[NAME_MAX-1]='\0';
-        entry->value = tempValue;
-    }else if (strcmp(actualType, "FRACTION")==0){
-    strncpy(tempValue.stringValue, (char*)value,NAME_MAX-1);
-        tempValue.stringValue[NAME_MAX-1]='\0';
-        entry->value = tempValue;
+    if(strcmp(value.type, "REAL")==0){
+    //   tempValue.floatValue = *((float*)value);
+      entry->value.floatValue = value.value.floatValue;
+    }else if(strcmp(value.type, "STRING")==0 || strcmp(value.type, "FRACTION")==0){
+        strncpy(entry->value.stringValue, (char*)value.value.stringValue,NAME_MAX-1);
+        entry->value.stringValue[NAME_MAX-1]='\0';
+    // }else if (strcmp(actualType, "FRACTION")==0){
+    // strncpy(tempValue.stringValue, (char*)value,NAME_MAX-1);
+    //     tempValue.stringValue[NAME_MAX-1]='\0';
+    //     entry->value = tempValue;
 
     }else{
         printf("error type");
