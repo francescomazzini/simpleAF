@@ -193,11 +193,6 @@ exprBool:
         exprGeneral '>' exprGeneral {$$ = boolID(SYMBOL_TABLE,$1,$3, '>');}
     |   exprGeneral '<' exprGeneral {$$ = boolID(SYMBOL_TABLE,$1,$3, '<');}
     |   exprGeneral EQ exprGeneral {$$ = boolID(SYMBOL_TABLE,$1,$3, '=');}
-    // | exprStrings EQ exprStrings {$$ = (strcmp($1,$3) == 0);}
-    // | expr EQ expr {$$ = $1 == $3;}
-    // | exprFraction EQ exprFraction {$$ = (strcmp($1,$3) == 0);}
-    // | expr '>' expr  {$$ = $1 > $3;}
-    // | expr '<' expr  {$$ = $1 > $3;}
 ;
     
 
