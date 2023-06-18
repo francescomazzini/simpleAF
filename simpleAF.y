@@ -136,6 +136,7 @@ scope : prog
 
 prog  : line  ';' '\n' prog
         | line ';' '\n'
+        | '\n' prog
       ;
 
 line  :  END  '\n'       {exit(0);}
@@ -164,15 +165,15 @@ line  :  END  '\n'       {exit(0);}
     //   | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
     //   | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");} 
-      | IF  '(' exprBool ')' '{' '\n' prog '}'  {printf("Boolean is: \"%s\"\n", $3 ? "true" : "false");exit(0);}
-      | WHILE '(' exprBool ')' '{' '\n' prog '}' {printf("Boolean is: \"%s\"\n", $3 ? "true" : "false");exit(0);}
-      | THEN             {printf("Recognized: then\n"); exit(0);}
-      | IF '(' exprBool ')' '{' '\n' prog '}' ELSE '{' '\n' prog '}'  {printf("Boolean is: \"%s\"\n", $3 ? "true" : "false");exit(0);}
-      | FOR             {printf("Recognized: for\n"); exit(0);}
-      | TIMES             {printf("Recognized: times\n"); exit(0);}
-      | FROM             {printf("Recognized: from\n"); exit(0);}
-      | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
-      | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
+      | IF  '(' exprBool ')' '{' '\n' prog '}'                        {printf("If condition is: \"%s\"\n", $3 ? "true" : "false");}
+      | WHILE '(' exprBool ')' '{' '\n' prog '}'                      {printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}
+      | IF '(' exprBool ')' '{' '\n' prog '}' ELSE '{' '\n' prog '}'  {printf("If condition is: \"%s\"\n", $3 ? "true" : "false");}
+    //   | THEN             {printf("Recognized: then\n"); exit(0);}
+    //   | FOR             {printf("Recognized: for\n"); exit(0);}
+    //   | TIMES             {printf("Recognized: times\n"); exit(0);}
+    //   | FROM             {printf("Recognized: from\n"); exit(0);}
+    //   | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
+    //   | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
     //   | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
       
       ;
