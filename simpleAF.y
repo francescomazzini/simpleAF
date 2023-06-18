@@ -29,6 +29,8 @@ struct symbolTableEntry {
 
     union Value value;
 
+    int scope_level;
+
     struct symbolTableEntry* next;
 };
 struct symbolTable{
@@ -84,6 +86,7 @@ bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  str
 
 
 struct symbolTable SYMBOL_TABLE;
+int GLOBAL_SCOPE_LEVEL = 1;
  
 %}
 
@@ -124,9 +127,6 @@ struct symbolTable SYMBOL_TABLE;
 %left '+' '-'
 %left '*' ':'
 %left '<' '>'
-%left ';' '\n'
-
-
 
 %start scope
 
@@ -165,9 +165,11 @@ line  :  END  '\n'       {exit(0);}
     //   | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
     //   | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");} 
-      | IF  '(' exprBool ')' '{' '\n' prog '}'                        {printf("If condition is: \"%s\"\n", $3 ? "true" : "false");}
-      | WHILE '(' exprBool ')' '{' '\n' prog '}'                      {printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}
-      | IF '(' exprBool ')' '{' '\n' prog '}' ELSE '{' '\n' prog '}'  {printf("If condition is: \"%s\"\n", $3 ? "true" : "false");}
+      | IF  '(' exprBool ')' '{' { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL + 1; }  '\n' 
+        prog  elseStatement              { printf("If condition is: \"%s\"\n", $3 ? "true" : "false");} 
+
+      | WHILE '(' exprBool ')' '{'  { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL + 1; } '\n' 
+        prog '}'                      { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}
     //   | THEN             {printf("Recognized: then\n"); exit(0);}
     //   | FOR             {printf("Recognized: for\n"); exit(0);}
     //   | TIMES             {printf("Recognized: times\n"); exit(0);}
@@ -177,6 +179,12 @@ line  :  END  '\n'       {exit(0);}
     //   | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
       
       ;
+
+    elseStatement :
+        '}' {  } ELSE '{' '\n' {  }  
+        prog '}'  { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1;}
+        | '}' { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; } 
+    ;
 
 exprGeneral : 
      exprGeneral '+' exprGeneral { copyID(SYMBOL_TABLE, &$$, sumID(SYMBOL_TABLE, $1, $3)); } 
@@ -428,6 +436,7 @@ struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type
 	
   first->next=NULL;
   strcpy(first->id, id);
+  first->scope_level = GLOBAL_SCOPE_LEVEL;
  
 
     union Value tempValue;
@@ -492,6 +501,7 @@ void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type)
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
     printf("Id: %s\n", symbol->id);
   printf("Type: %s\n", symbol->type);
+  printf("Scope level: %d\n", symbol->scope_level);
   if(strcmp(symbol->type, "REAL")==0){
       printf("Value: %f\n", symbol->value.floatValue);
   }else if(strcmp(symbol->type, "STRING")==0){
