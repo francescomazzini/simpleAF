@@ -133,7 +133,7 @@ scope : prog
       ;
 
 prog  : line  ';' '\n' prog
-        | line 
+        | line ';' '\n'
       ;
 
 line  :  END  '\n'       {exit(0);}
