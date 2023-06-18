@@ -32,6 +32,7 @@ rad {return RAD;}
 log {return LOG;}
 mod {return MOD;}
 pow {return POW;}
+while {return WHILE;}
 
 for {return FOR;}
 times {return TIMES;}
@@ -70,6 +71,8 @@ end {return END;}
 "="     {return '=';}
 ">"     {return '>';}
 "<"     {return '<';}
+"{"     {return '{';}
+"}"     {return '}';}
 \n    {return '\n';}
 
 

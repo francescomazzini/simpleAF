@@ -118,12 +118,14 @@ struct symbolTable SYMBOL_TABLE;
 %token DECREASING
 %token BOOLEAN
 %token EQ
+%token WHILE
 
 
 %left '+' '-'
 %left '*' ':'
 %left '<' '>'
 %left ';' '\n'
+
 
 
 %start scope
@@ -162,9 +164,10 @@ line  :  END  '\n'       {exit(0);}
     //   | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
     //   | ID             {printf("IDentifier: %s\n", $1); exit(0);}
       | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");} 
-      | IF             {printf("Recognized: if\n"); exit(0);}
+      | IF  '(' exprBool ')' '{' '\n' prog '}'  {printf("Boolean is: \"%s\"\n", $3 ? "true" : "false");exit(0);}
+      | WHILE '(' exprBool ')' '{' '\n' prog '}' {printf("Boolean is: \"%s\"\n", $3 ? "true" : "false");exit(0);}
       | THEN             {printf("Recognized: then\n"); exit(0);}
-      | ELSE             {printf("Recognized: else\n"); exit(0);}
+      | IF '(' exprBool ')' '{' '\n' prog '}' ELSE '{' '\n' prog '}'  {printf("Boolean is: \"%s\"\n", $3 ? "true" : "false");exit(0);}
       | FOR             {printf("Recognized: for\n"); exit(0);}
       | TIMES             {printf("Recognized: times\n"); exit(0);}
       | FROM             {printf("Recognized: from\n"); exit(0);}
@@ -175,10 +178,10 @@ line  :  END  '\n'       {exit(0);}
       ;
 
 exprGeneral : 
-     exprGeneral '+' exprGeneral { copyID(SYMBOL_TABLE, &$$, sumID(SYMBOL_TABLE, $1, $3)) } 
-    | exprGeneral '-' exprGeneral { copyID(SYMBOL_TABLE, &$$, subID(SYMBOL_TABLE, $1, $3)) }
-    | exprGeneral '*' exprGeneral { copyID(SYMBOL_TABLE, &$$, mulID(SYMBOL_TABLE, $1, $3)) }
-    | exprGeneral ':' exprGeneral { copyID(SYMBOL_TABLE, &$$, divID(SYMBOL_TABLE, $1, $3)) } 
+     exprGeneral '+' exprGeneral { copyID(SYMBOL_TABLE, &$$, sumID(SYMBOL_TABLE, $1, $3)); } 
+    | exprGeneral '-' exprGeneral { copyID(SYMBOL_TABLE, &$$, subID(SYMBOL_TABLE, $1, $3)); }
+    | exprGeneral '*' exprGeneral { copyID(SYMBOL_TABLE, &$$, mulID(SYMBOL_TABLE, $1, $3)); }
+    | exprGeneral ':' exprGeneral { copyID(SYMBOL_TABLE, &$$, divID(SYMBOL_TABLE, $1, $3)); } 
     | RAD '(' exprGeneral ')'              { copyID(SYMBOL_TABLE, &$$, sqrtID(SYMBOL_TABLE, $3)); }
     | LOG '(' exprGeneral ')'               { copyID(SYMBOL_TABLE, &$$, logID(SYMBOL_TABLE, $3)); }
     | MOD '(' exprGeneral ',' exprGeneral ')'             {copyID(SYMBOL_TABLE, &$$, modID(SYMBOL_TABLE, $3, $5));}
