@@ -40,6 +40,8 @@ from {return FROM;}
 increasing {return INCREASING;}
 decreasing {return DECREASING;}
 end {return END;}
+symbtb {return SYMBTB;}
+sym {return SYM;}
 
 {REAL}   {yylval.value = atof(yytext);
           return REAL;}

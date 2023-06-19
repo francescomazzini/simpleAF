@@ -66,6 +66,7 @@ struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
 void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id);
 void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  struct symbolTableEntry value);
+void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRemove);
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType);
 void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id);
 char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id );
@@ -102,6 +103,8 @@ int GLOBAL_SCOPE_LEVEL = 1;
 %type <boolean> exprBool
 
 %token END
+%token SYMBTB
+%token SYM
 %token <lexeme> ID
 %token <value>  REAL
 %token <lexeme> STRING
@@ -137,9 +140,12 @@ scope : prog
 prog  : line  ';' '\n' prog
         | line ';' '\n'
         | '\n' prog
+        | '\n'
       ;
 
 line  :  END  '\n'       {exit(0);}
+      | SYMBTB          { printSymbolTableEntry(&SYMBOL_TABLE); }
+      | SYM ID          { printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2)); }
       | exprGeneral         { 
                                 if(strcmp($1.type, "STRING") == 0)
                                     printf("Value: \"%s\"", $1.value.stringValue);
@@ -151,14 +157,17 @@ line  :  END  '\n'       {exit(0);}
                             }
       | TYPE ID '=' exprGeneral { 
                                 addWithTypeChecking(SYMBOL_TABLE,$1,$4,$2);
-                                printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2));
                             }
       | ID '=' exprGeneral  { 
                             updateValueWithTypeChecking(SYMBOL_TABLE, $1, $3);
-
-                            printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
-      | ID '=' '(' exprBool ')' '?' exprGeneral ':' exprGeneral {if($4 == 1){updateValueWithTypeChecking(SYMBOL_TABLE, $1, $7);}else{updateValueWithTypeChecking(SYMBOL_TABLE, $1, $9);}}{printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));}
+      | ID '=' '(' exprBool ')' '?' exprGeneral ':' exprGeneral {   
+                        if($4 == 1){
+                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, $7);
+                        } else { 
+                            updateValueWithTypeChecking(SYMBOL_TABLE, $1, $9);
+                        }
+                    }
       | BOOLEAN {printf("Boolean recognized\n"); exit(0);}
     //   | expr     {printf("Result: %5.2f\n", $1); exit(0);}
     //   | exprFraction    {printf("Result: %s\n", $1); exit(0);}
@@ -170,7 +179,7 @@ line  :  END  '\n'       {exit(0);}
         prog  elseStatement              { printf("If condition is: \"%s\"\n", $3 ? "true" : "false");} 
 
       | WHILE '(' exprBool ')' '{'  { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL + 1; } '\n' 
-        prog '}'                      { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}
+        prog '}'                      { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}
     //   | THEN             {printf("Recognized: then\n"); exit(0);}
     //   | FOR             {printf("Recognized: for\n"); exit(0);}
     //   | TIMES             {printf("Recognized: times\n"); exit(0);}
@@ -186,9 +195,9 @@ line  :  END  '\n'       {exit(0);}
     //Since this was not possible, because even giving priority to the else, than it would have chose that production much before than knowing
     //if there was an else or not, therefore we had to separate the possibility of the else production in a separate one
     elseStatement :  
-        '}' {  } ELSE '{' '\n' {  }  
-        prog '}'  { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1;}
-        | '}' { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; } 
+        '}' { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); } ELSE '{' '\n' {  }  
+        prog '}'  { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1;}
+        | '}' { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; } 
     ;
 
 exprGeneral : 
@@ -617,6 +626,52 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  str
     // entry->value = tempValue;
 
 }
+
+void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRemove){
+
+    struct symbolTableEntry *dummy = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
+
+    dummy->next=SYMBOL_TABLE.head;
+
+    struct symbolTableEntry *last = dummy;
+        
+
+    // struct symbolTableEntry *last = //crea un dummy che punti all'head
+    // SYMBOL_TABLE->head;
+
+    if (last->next != NULL) {
+
+        //fai finche la lista non e' finita e ad ogni iteration controlla quanto sia 
+        // lo scope level del next node. Se e' uguale a scopeLevelToRemove, llora va fatto il free del next 
+        //node e il puntatore attuale next va portato a quello dopo ancora (A MENO CHE NON SIA L'ultimo elemento)
+        while(last->next != NULL) {
+
+            if (last->next->scope_level == scopeLevelToRemove) {
+                
+                // last->next = last->next->next;
+
+                struct symbolTableEntry *temp = last->next;
+                last->next = last->next->next;
+                free(temp);
+
+            } else {
+
+                last = last->next;
+                
+            }
+
+            
+        }
+
+        //il puntatore torna al vero head (serve ? Mi sa di si)
+
+        // last->next = createFirstEntryTable(id,value,type);
+
+        SYMBOL_TABLE.head = dummy->next;
+        free(dummy);
+    }
+
+} 
 
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType) {
 
