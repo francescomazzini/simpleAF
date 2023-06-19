@@ -786,7 +786,7 @@ struct symbolTableEntry mulID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
         char* val1 = id1.value.stringValue;
         char* val2 = id2.value.stringValue;
         strcpy(result.type, "FRACTION");
-        strcpy(result.value.stringValue, subFractions(val1, val2));
+        strcpy(result.value.stringValue, mulFractions(val1,val2));
     } else if (strcmp(id1.type, "REAL") == 0 && strcmp(id2.type, "REAL") == 0) {
         float val1 = id1.value.floatValue;
         float val2 = id2.value.floatValue;
