@@ -180,7 +180,11 @@ line  :  END  '\n'       {exit(0);}
       
       ;
 
-    elseStatement :
+    //it was done with a separate statement because since there ws code already at the opening of the first curly bracket,
+    // then it was needed to make him know immediately which of the two productions (if then or if else) it has to choose. 
+    //Since this was not possible, because even giving priority to the else, than it would have chose that production much before than knowing
+    //if there was an else or not, therefore we had to separate the possibility of the else production in a separate one
+    elseStatement :  
         '}' {  } ELSE '{' '\n' {  }  
         prog '}'  { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1;}
         | '}' { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; } 
