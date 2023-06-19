@@ -158,6 +158,7 @@ line  :  END  '\n'       {exit(0);}
 
                             printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));
                         }
+      | ID '=' '(' exprBool ')' '?' exprGeneral ':' exprGeneral {if($4 == 1){updateValueWithTypeChecking(SYMBOL_TABLE, $1, $7);}else{updateValueWithTypeChecking(SYMBOL_TABLE, $1, $9);}}{printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $1));}
       | BOOLEAN {printf("Boolean recognized\n"); exit(0);}
     //   | expr     {printf("Result: %5.2f\n", $1); exit(0);}
     //   | exprFraction    {printf("Result: %s\n", $1); exit(0);}
@@ -954,7 +955,7 @@ bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  str
             case '<' :
                 return booleanOfFractionsSmaller(id1.value.stringValue, id2.value.stringValue);
             case '=':
-                return strcmp(id1.value.stringValue, id2.value.stringValue) == 0;
+                return strcmp(simplifyFraction( stringToNumberStart( id1.value.stringValue), stringToNumberEnd(id1.value.stringValue)), simplifyFraction( stringToNumberStart( id2.value.stringValue), stringToNumberEnd(id2.value.stringValue))) == 0;
             default:
                 printf("INCORRECT OPERATION FOR THIS TYPE");
                 exit(1);
@@ -966,7 +967,7 @@ bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  str
             case '<' :
                 return id1.value.floatValue < id2.value.floatValue;
             case '=':
-                return id1.value.floatValue == id2.value.floatValue;
+                return (fabs(id1.value.floatValue - id2.value.floatValue)) < 0.0001;
             default:
                 printf("INCORRECT OPERATION FOR THIS TYPE");
                 exit(1);

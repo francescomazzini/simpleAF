@@ -73,6 +73,7 @@ end {return END;}
 "<"     {return '<';}
 "{"     {return '{';}
 "}"     {return '}';}
+"?"     {return '?';}
 \n    {return '\n';}
 
 
