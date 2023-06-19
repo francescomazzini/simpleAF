@@ -31,6 +31,8 @@ struct symbolTableEntry {
 
     int scope_level;
 
+    bool is_open;
+
     struct symbolTableEntry* next;
 };
 struct symbolTable{
@@ -55,16 +57,16 @@ char* multiplyStrings (const char* str1, float mulNum);
 bool booleanOfFractionsBigger(char* a, char* b);
 bool booleanOfFractionsSmaller(char* a, char* b);
 
-struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type);
+struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type, bool is_open);
 void createSymbolTable(struct symbolTable *table);
-void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type);
-void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type);
+void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type, bool is_open);
+void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type, bool is_open);
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol);
 void printSymbolTableEntry (struct symbolTable* symbol);
 struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id);
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id);
 
-void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id);
+void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id, bool is_open);
 void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  struct symbolTableEntry value);
 void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRemove);
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType);
@@ -105,6 +107,8 @@ int GLOBAL_SCOPE_LEVEL = 1;
 %token END
 %token SYMBTB
 %token SYM
+%token OPEN
+%token CLOSE
 %token <lexeme> ID
 %token <value>  REAL
 %token <lexeme> STRING
@@ -155,8 +159,14 @@ line  :  END  '\n'       {exit(0);}
                                     printf("Value: %f", $1.value.floatValue);
                                 }
                             }
+      | OPEN TYPE ID '=' exprGeneral { 
+                                 addWithTypeChecking(SYMBOL_TABLE,$2,$5,$3,true);
+                             }
+      | CLOSE TYPE ID '=' exprGeneral { 
+                                 addWithTypeChecking(SYMBOL_TABLE,$2,$5,$3,false);
+                             }
       | TYPE ID '=' exprGeneral { 
-                                addWithTypeChecking(SYMBOL_TABLE,$1,$4,$2);
+                                addWithTypeChecking(SYMBOL_TABLE,$1,$4,$2,false);
                             }
       | ID '=' exprGeneral  { 
                             updateValueWithTypeChecking(SYMBOL_TABLE, $1, $3);
@@ -236,7 +246,7 @@ int main(void)
 
 
 
-  // Funzione per calcolare il massimo comune divisore (GCD) di due numeri
+// Funzione per calcolare il massimo comune divisore (GCD) di due numeri
 int gcd(int a, int b) {
     if (b == 0)
         return a;
@@ -445,12 +455,13 @@ bool booleanOfFractionsSmaller(char* a, char* b){
 
 /// - -  - -- - - - - -- - - -  SYMBOL TABLE - -- - - -- - - - - --
 
-struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type) {
+struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type, bool is_open) {
   struct symbolTableEntry *first = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
 	
   first->next=NULL;
   strcpy(first->id, id);
   first->scope_level = GLOBAL_SCOPE_LEVEL;
+  first->is_open = is_open;
  
 
     union Value tempValue;
@@ -479,13 +490,13 @@ return first;
 void createSymbolTable(struct symbolTable *table){
 
   char* charValue = "first";
-  table->head = createFirstEntryTable("",(void*)charValue,"STRING");
+  table->head = createFirstEntryTable("",(void*)charValue,"STRING", false);
   table->countSymbol = 0;
 
 
 }
 
-void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type) {
+void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type, bool is_open) {
 
  struct symbolTableEntry *last = list;
 
@@ -501,14 +512,14 @@ void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* ty
   }
 
 
-  last->next = createFirstEntryTable(id,value,type);
+  last->next = createFirstEntryTable(id,value,type, is_open);
   
 
   
 }
-void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type){
+void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type, bool is_open){
     
-  addEntryTable(table->head,id,value,type);
+  addEntryTable(table->head,id,value,type,is_open);
   table->countSymbol++;
 
 }
@@ -516,6 +527,7 @@ void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
     printf("Id: %s\n", symbol->id);
   printf("Type: %s\n", symbol->type);
   printf("Scope level: %d\n", symbol->scope_level);
+  printf("It is an open variable: %s\n", symbol->is_open ? "true" : "false");
   if(strcmp(symbol->type, "REAL")==0){
       printf("Value: %f\n", symbol->value.floatValue);
   }else if(strcmp(symbol->type, "STRING")==0){
@@ -565,7 +577,7 @@ struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id){
 
 //--------- util symbol table ---------
 
-void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id){
+void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id, bool is_open){
 
     if(strcmp(value.type, supposedType) != 0) {
         printf("Error type");
@@ -581,9 +593,9 @@ void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, st
         
         } else {
             if(strcmp(value.type, "STRING") == 0 || strcmp(value.type, "FRACTION") == 0) {
-                addSymbolTable(&SYMBOL_TABLE, id, (void*)value.value.stringValue, value.type);
+                addSymbolTable(&SYMBOL_TABLE, id, (void*)value.value.stringValue, value.type, is_open);
             } else if (strcmp(value.type, "REAL") == 0 ) {
-                addSymbolTable(&SYMBOL_TABLE, id, (void*)&value.value.floatValue, value.type);
+                addSymbolTable(&SYMBOL_TABLE, id, (void*)&value.value.floatValue, value.type, is_open);
             }
         }
 
@@ -636,19 +648,11 @@ void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRe
     struct symbolTableEntry *last = dummy;
         
 
-    // struct symbolTableEntry *last = //crea un dummy che punti all'head
-    // SYMBOL_TABLE->head;
-
     if (last->next != NULL) {
 
-        //fai finche la lista non e' finita e ad ogni iteration controlla quanto sia 
-        // lo scope level del next node. Se e' uguale a scopeLevelToRemove, llora va fatto il free del next 
-        //node e il puntatore attuale next va portato a quello dopo ancora (A MENO CHE NON SIA L'ultimo elemento)
         while(last->next != NULL) {
 
-            if (last->next->scope_level == scopeLevelToRemove) {
-                
-                // last->next = last->next->next;
+            if (last->next->scope_level == scopeLevelToRemove && !last->next->is_open) {
 
                 struct symbolTableEntry *temp = last->next;
                 last->next = last->next->next;
@@ -662,10 +666,6 @@ void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRe
 
             
         }
-
-        //il puntatore torna al vero head (serve ? Mi sa di si)
-
-        // last->next = createFirstEntryTable(id,value,type);
 
         SYMBOL_TABLE.head = dummy->next;
         free(dummy);

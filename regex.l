@@ -42,6 +42,8 @@ decreasing {return DECREASING;}
 end {return END;}
 symbtb {return SYMBTB;}
 sym {return SYM;}
+CLOSE {return CLOSE;}
+OPEN {return OPEN;}
 
 {REAL}   {yylval.value = atof(yytext);
           return REAL;}
