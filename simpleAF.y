@@ -920,6 +920,10 @@ struct symbolTableEntry divID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
     } else if (strcmp(id1.type, "REAL") == 0 && strcmp(id2.type, "REAL") == 0) {
         float val1 = id1.value.floatValue;
         float val2 = id2.value.floatValue;
+
+        if(val2 == 0)
+            yyerror("DIVISION BY 0 IS NOT POSSIBLE");
+            
         strcpy(result.type, "REAL");
         result.value.floatValue = val1 / val2;
     } else {
