@@ -23,6 +23,15 @@ int yylex(void);
         char stringValue[NAME_MAX];
     };
 
+
+/**
+* An entry of the symbol table.
+* -> id - name of the variable
+* -> type - name of the type of the variable
+* -> value - actual value contained by the variable
+* -> scope_level - indicates the int level of the scope (1 is the lowest)
+* -> next - pointer of the next node in the linked list
+*/
 struct symbolTableEntry {
     char id[NAME_MAX];
     char type[NAME_MAX];
@@ -35,6 +44,10 @@ struct symbolTableEntry {
 
     struct symbolTableEntry* next;
 };
+
+/**
+* Symbol table
+*/
 struct symbolTable{
   struct symbolTableEntry* head;
   int countSymbol;
@@ -87,7 +100,9 @@ struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTab
 struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2);
 bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2, char operator);
 
-
+/**
+* Starting delcarations of symbol table and global scope level
+*/
 struct symbolTable SYMBOL_TABLE;
 int GLOBAL_SCOPE_LEVEL = 1;
  
@@ -95,10 +110,10 @@ int GLOBAL_SCOPE_LEVEL = 1;
 
 
 %union {
-       char* lexeme;			//name of an identifier
-       float value;			//attribute of a token of type NUM
-       bool boolean;      //attribute of a to boolean
-       struct symbolTableEntry id;
+       char* lexeme;			        //name of an identifier
+       float value;			            //attribute of a token of type REAL
+       bool boolean;                    //attribute of a to boolean
+       struct symbolTableEntry id;      //attribute for general expressions
        }
 
 %type <id> exprGeneral
@@ -119,13 +134,7 @@ int GLOBAL_SCOPE_LEVEL = 1;
 %token MOD
 %token POW
 %token IF
-%token THEN
 %token ELSE
-%token FOR
-%token TIMES
-%token FROM
-%token INCREASING
-%token DECREASING
 %token BOOLEAN
 %token EQ
 %token WHILE
@@ -141,16 +150,19 @@ int GLOBAL_SCOPE_LEVEL = 1;
 scope : prog          
       ;
 
+//program is composed of more lines, each of which has to finish with the semicolon, unless they are just new lines
 prog  : line  ';' '\n' prog
         | line ';' '\n'
         | '\n' prog
         | '\n'
       ;
 
-line  :  END  '\n'       {exit(0);}
-      | SYMBTB          { printSymbolTableEntry(&SYMBOL_TABLE); }
-      | SYM ID          { printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2)); }
-      | exprGeneral         { 
+//each line is a statement and there are different things that can be executed 
+line  :  END  '\n'       {exit(0);}                                                         //end of the program
+      | SYMBTB          { printSymbolTableEntry(&SYMBOL_TABLE); }                           //print the symbol table
+      | SYM ID          { printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2)); }    //print the symbol table entry of a specific ID
+    //it represents a general expression of any type
+      | exprGeneral         {                                                               
                                 if(strcmp($1.type, "STRING") == 0)
                                     printf("Value: \"%s\"", $1.value.stringValue);
                                 else if (strcmp($1.type, "FRACTION") == 0)
@@ -159,18 +171,23 @@ line  :  END  '\n'       {exit(0);}
                                     printf("Value: %f", $1.value.floatValue);
                                 }
                             }
+    //declaration of an ID as OPEN variable
       | OPEN TYPE ID '=' exprGeneral { 
                                  addWithTypeChecking(SYMBOL_TABLE,$2,$5,$3,true);
                              }
+    //declaration of an ID as CLOSE variable
       | CLOSE TYPE ID '=' exprGeneral { 
                                  addWithTypeChecking(SYMBOL_TABLE,$2,$5,$3,false);
                              }
+    //declaration of an ID, implicitly OPEN variable
       | TYPE ID '=' exprGeneral { 
                                 addWithTypeChecking(SYMBOL_TABLE,$1,$4,$2,false);
                             }
+    //reassigning a value to an ID
       | ID '=' exprGeneral  { 
                             updateValueWithTypeChecking(SYMBOL_TABLE, $1, $3);
                         }
+    //reassigning a value to an ID based on a bool condition
       | ID '=' '(' exprBool ')' '?' exprGeneral ':' exprGeneral {   
                         if($4 == 1){
                             updateValueWithTypeChecking(SYMBOL_TABLE, $1, $7);
@@ -179,28 +196,16 @@ line  :  END  '\n'       {exit(0);}
                         }
                     }
       | BOOLEAN {printf("Boolean recognized\n"); exit(0);}
-    //   | expr     {printf("Result: %5.2f\n", $1); exit(0);}
-    //   | exprFraction    {printf("Result: %s\n", $1); exit(0);}
-    //   | exprStrings  {printf("Result: \"%s\"\n", $1); exit(0);}
-    //   | STRING   {printf("String recognized: \"%s\"\n", $1); exit(0);}
-    //   | ID             {printf("IDentifier: %s\n", $1); exit(0);}
+    //boolean expression
       | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");} 
       | IF  '(' exprBool ')' '{' { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL + 1; }  '\n' 
         prog  elseStatement              { printf("If condition is: \"%s\"\n", $3 ? "true" : "false");} 
 
       | WHILE '(' exprBool ')' '{'  { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL + 1; } '\n' 
-        prog '}'                      { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}
-    //   | THEN             {printf("Recognized: then\n"); exit(0);}
-    //   | FOR             {printf("Recognized: for\n"); exit(0);}
-    //   | TIMES             {printf("Recognized: times\n"); exit(0);}
-    //   | FROM             {printf("Recognized: from\n"); exit(0);}
-    //   | INCREASING             {printf("Recognized: increasing\n"); exit(0);}
-    //   | DECREASING             {printf("Recognized: decreasing\n"); exit(0);}
-    //   | FRACTION              {printf("fraction: %s\n", $1); exit(0);}
-      
+        prog '}'                      { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}      
       ;
 
-    //it was done with a separate statement because since there ws code already at the opening of the first curly bracket,
+    //it was done with a separate statement because since there was code already at the opening of the first curly bracket,
     // then it was needed to make him know immediately which of the two productions (if then or if else) it has to choose. 
     //Since this was not possible, because even giving priority to the else, than it would have chose that production much before than knowing
     //if there was an else or not, therefore we had to separate the possibility of the else production in a separate one
@@ -244,9 +249,9 @@ int main(void)
 }
 
 
+// - - - - - - - - - - - - - - - - BASIC UTILS - - - - - - - - - - - - - - - - 
 
-
-// Funzione per calcolare il massimo comune divisore (GCD) di due numeri
+// Function to compute the Greater Common divisor of two numbers
 int gcd(int a, int b) {
     if (b == 0)
         return a;
@@ -254,12 +259,13 @@ int gcd(int a, int b) {
         return gcd(b, a % b);
 }
 
-// Funzione per calcolare il minimo comune multiplo (LCM) di due numeri
+// Function to compute the Least Common Multiplier between two numbers
 int lcm(int a, int b) {
     int gcd_result = gcd(a, b);
     return (a * b) / gcd_result;
 }
 
+// Function to find the first int number in a string
 int stringToNumberStart(const char* str) {
     int number = 0;
     int length = strlen(str);
@@ -278,6 +284,8 @@ int stringToNumberStart(const char* str) {
 
     return number;
 }
+
+// Function to find the last int number in a string
 int stringToNumberEnd(const char* str) {
     int number = 0;
     int length = strlen(str);
@@ -296,6 +304,8 @@ int stringToNumberEnd(const char* str) {
 
     return number;
 }
+
+// Function to convert the numbers to string
 char* numbersToString(int number1, int number2) {
     // Determine the required size
     int size = snprintf(NULL, 0, "%d %d", number1, number2);
@@ -313,6 +323,7 @@ char* numbersToString(int number1, int number2) {
     return str;
 }
 
+// Function to simplify a fraction (ex: 2/4 -> 1/2)
 char* simplifyFraction(int numerator, int denominator) {
     int commonDivisor = gcd(numerator, denominator);
 
@@ -324,6 +335,7 @@ char* simplifyFraction(int numerator, int denominator) {
     return numbersToString(numerator,denominator);
 }
 
+// Function to convert the string to a float
 float convertStringToFloat(char* a){
     int c = stringToNumberStart(a);
     int b = stringToNumberEnd(a);
@@ -331,6 +343,7 @@ float convertStringToFloat(char* a){
     return (float)(c/b);
 }
 
+// Function for computing the sum of two fractions
 char* sumFractions(char* a, char* b){
      int numA = stringToNumberStart(a);
      int denA =stringToNumberEnd(a);
@@ -347,6 +360,7 @@ char* sumFractions(char* a, char* b){
 
 }
 
+// Function for computing the subtraction of two fractions
 char* subFractions(char* a, char* b){
      int numA = stringToNumberStart(a);
      int denA =stringToNumberEnd(a);
@@ -363,7 +377,7 @@ char* subFractions(char* a, char* b){
 
 }
 
-
+// Function for computing the multiplication of two fractions
 char* mulFractions(char* a, char* b){
      int numA = stringToNumberStart(a);
      int denA =stringToNumberEnd(a);
@@ -376,6 +390,7 @@ char* mulFractions(char* a, char* b){
      return simplifyFraction(newNum,newDen);
 }
 
+// Function for computing the division of two fractions
 char* divFractions(char* a, char* b){
      int numA = stringToNumberStart(a);
      int denA =stringToNumberEnd(a);
@@ -388,6 +403,7 @@ char* divFractions(char* a, char* b){
      return simplifyFraction(newNum,newDen);
 }
 
+// Function to compute the concatenation of two strings
 char* concatenateStrings(const char* str1, const char* str2) {
     size_t len1 = strlen(str1);
     size_t len2 = strlen(str2);
@@ -410,6 +426,7 @@ char* concatenateStrings(const char* str1, const char* str2) {
     return result;
 }
 
+// Function for computing the multiplication of a string with a number, such that it's appended n times
 char* multiplyStrings(const char* str, float numTimes) {
 
     int times = (int) numTimes;
@@ -425,6 +442,8 @@ char* multiplyStrings(const char* str, float numTimes) {
 
     return result;
 }
+
+// Function for comparing two functions, if the first is greater than the second
 bool booleanOfFractionsBigger(char* a, char* b){
     int numA = stringToNumberStart(a);
     int denA = stringToNumberEnd(a);
@@ -437,6 +456,8 @@ bool booleanOfFractionsBigger(char* a, char* b){
  
     return numberA>numberB;
 }
+
+// Function for comparing two functions, if the first is smaller than the second
 bool booleanOfFractionsSmaller(char* a, char* b){
     int numA = stringToNumberStart(a);
     int denA = stringToNumberEnd(a);
@@ -452,9 +473,10 @@ bool booleanOfFractionsSmaller(char* a, char* b){
 
 
 
+// - - - - - - - - - - - - - - - - SYMBOL TABLE FUNCTIONS - - - - - - - - - - - - - - - - 
 
-/// - -  - -- - - - - -- - - -  SYMBOL TABLE - -- - - -- - - - - --
-
+// Function for creating the first element of the symbol table although this method is also exploited for 
+// creating the next ones
 struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type, bool is_open) {
   struct symbolTableEntry *first = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
 	
@@ -487,6 +509,8 @@ struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type
 strcpy(first->type, type);
 return first;
 }
+
+// Function for creating the symbol table
 void createSymbolTable(struct symbolTable *table){
 
   char* charValue = "first";
@@ -496,6 +520,7 @@ void createSymbolTable(struct symbolTable *table){
 
 }
 
+// Function for adding new entry to the symbol table
 void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* type, bool is_open) {
 
  struct symbolTableEntry *last = list;
@@ -512,17 +537,18 @@ void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* ty
   }
 
 
-  last->next = createFirstEntryTable(id,value,type, is_open);
-  
-
-  
+  last->next = createFirstEntryTable(id,value,type, is_open);  
 }
+
+// Function for adding a new enty to the symbol table from the most external level
 void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type, bool is_open){
     
   addEntryTable(table->head,id,value,type,is_open);
   table->countSymbol++;
 
 }
+
+// Function for printing a symbol table entry
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
     printf("Id: %s\n", symbol->id);
   printf("Type: %s\n", symbol->type);
@@ -537,11 +563,14 @@ void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
 
   }else{
     printf("error type");
-  }
+  }  
 }
+
+// Function for printing the entire symbol table 
 void printSymbolTableEntry (struct symbolTable* symbol) {
 
-struct symbolTableEntry *iterator = symbol->head;
+struct symbolTableEntry *iterator = symbol->head->next; //the first element is skipped because is empty and set by the language at the beginning
+ 
   while(iterator != NULL){
 
   printSingleSymbolTableEntry(iterator);
@@ -551,6 +580,7 @@ struct symbolTableEntry *iterator = symbol->head;
 
 }
 
+// Function for making a look up in the symbol table to get a specific entry
 struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id) {
 
   struct symbolTableEntry *iter = symbol;
@@ -571,12 +601,13 @@ struct symbolTableEntry* lookUp(struct symbolTableEntry* symbol, char* id) {
   return iter;  
 
 }
+
+// Function for making a look up in the symbol table to get a specific entry from the most external level
 struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id){
   return lookUp(table->head,id);
 }
 
-//--------- util symbol table ---------
-
+// Function for adding a new entry in the symbol table but with TYPE CHECK
 void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id, bool is_open){
 
     if(strcmp(value.type, supposedType) != 0) {
@@ -603,6 +634,7 @@ void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, st
 
 }
 
+// Function for updating an entry value in the symbol table with TYPE CHECK
 void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  struct symbolTableEntry value) {
 
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
@@ -617,28 +649,18 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  str
         exit(1);
     }
 
-    // union Value tempValue;
-
     if(strcmp(value.type, "REAL")==0){
-    //   tempValue.floatValue = *((float*)value);
       entry->value.floatValue = value.value.floatValue;
     }else if(strcmp(value.type, "STRING")==0 || strcmp(value.type, "FRACTION")==0){
         strncpy(entry->value.stringValue, (char*)value.value.stringValue,NAME_MAX-1);
         entry->value.stringValue[NAME_MAX-1]='\0';
-    // }else if (strcmp(actualType, "FRACTION")==0){
-    // strncpy(tempValue.stringValue, (char*)value,NAME_MAX-1);
-    //     tempValue.stringValue[NAME_MAX-1]='\0';
-    //     entry->value = tempValue;
-
     }else{
         printf("error type");
     }
 
-    // tempValue.floatValue = *((float*)&$3);
-    // entry->value = tempValue;
-
 }
 
+// Function for removing entries of the symbol table that have a certain scope level but that are not of type OPEN
 void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRemove){
 
     struct symbolTableEntry *dummy = (struct symbolTableEntry*) malloc(sizeof(struct symbolTableEntry));
@@ -653,18 +675,12 @@ void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRe
         while(last->next != NULL) {
 
             if (last->next->scope_level == scopeLevelToRemove && !last->next->is_open) {
-
                 struct symbolTableEntry *temp = last->next;
                 last->next = last->next->next;
                 free(temp);
-
             } else {
-
                 last = last->next;
-                
             }
-
-            
         }
 
         SYMBOL_TABLE.head = dummy->next;
@@ -673,6 +689,7 @@ void removeBasedOnScopeLevel(struct symbolTable SYMBOL_TABLE, int scopeLevelToRe
 
 } 
 
+// Function for getting a value from the symbol table with TYPE CHECK
 void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* actualType) {
 
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
@@ -701,6 +718,7 @@ void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* 
 
 }
 
+// Function for getting a value from the symbol table WITHOUT TYPE CHECK
 void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id) {
 
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
@@ -724,6 +742,7 @@ void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id) {
 
 }
 
+// Function for getting the type of an entry in the symbol table
 char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id ) {
 
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
@@ -732,6 +751,9 @@ char* getValueType ( struct symbolTable SYMBOL_TABLE,char* id ) {
 
 }
 
+// - - - - - - - - - - - - - - - - EXPRESSION COMPUTATIONS UTILS - - - - - - - - - - - - - - - - 
+
+// Function for copying info of an entry in the symbol table and pasting them to a similar struct passed as a pointer
 void copyIDFromName (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, char* id2 ) {
 
     strcpy(id1->type, getValueType(SYMBOL_TABLE, id2));
@@ -744,6 +766,7 @@ void copyIDFromName (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* i
 
 }
 
+// Function for converting the info a FRACTION to the struct of a symbol table entry, filling just the value and type
 void copyIDFromFraction (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, char* id2 ) {
 
     strcpy(id1->type, "FRACTION");
@@ -751,6 +774,7 @@ void copyIDFromFraction (struct symbolTable SYMBOL_TABLE, struct symbolTableEntr
 
 }
 
+// Function for converting the info a FLOAT to the struct of a symbol table entry, filling just the value and type
 void copyIDFromFloat (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, float id2 ) {
 
     strcpy(id1->type, "REAL");
@@ -758,6 +782,7 @@ void copyIDFromFloat (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* 
 
 }
 
+// Function for converting the info a STRING to the struct of a symbol table entry, filling just the value and type
 void copyIDFromString (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, char* id2 ) {
 
     strcpy(id1->type, "STRING");
@@ -765,6 +790,7 @@ void copyIDFromString (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry*
 
 }
 
+// Function for copying info of a symboltable entry struct to another symboltable entry struct
 void copyID (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, struct symbolTableEntry id2 ) {
 
     strcpy(id1->type, id2.type);
@@ -777,6 +803,8 @@ void copyID (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, stru
 
 }
 
+// Function for doing the sum of two symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry sumID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2) {
 
     struct symbolTableEntry result;
@@ -806,6 +834,8 @@ struct symbolTableEntry sumID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
 
 }
 
+// Function for doing the subtraction of two symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry subID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2) {
 
     struct symbolTableEntry result;
@@ -833,6 +863,8 @@ struct symbolTableEntry subID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
 
 }
 
+// Function for doing the multiplication of two symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry mulID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2) {
 
     struct symbolTableEntry result;
@@ -870,6 +902,8 @@ struct symbolTableEntry mulID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
 
 }
 
+// Function for doing the division of two symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry divID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2) {
 
     struct symbolTableEntry result;
@@ -897,6 +931,8 @@ struct symbolTableEntry divID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
 
 }
 
+// Function for doing the square root of a symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry sqrtID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1) {
 
     struct symbolTableEntry result;
@@ -921,6 +957,8 @@ struct symbolTableEntry sqrtID(struct symbolTable SYMBOL_TABLE,  struct symbolTa
 
 }
 
+// Function for doing the logarithm of a symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry logID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1) {
 
     struct symbolTableEntry result;
@@ -945,6 +983,8 @@ struct symbolTableEntry logID(struct symbolTable SYMBOL_TABLE,  struct symbolTab
 
 }
 
+// Function for doing the modulus of a symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2){
 
     struct symbolTableEntry result;
@@ -970,6 +1010,8 @@ struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTab
 
 }
 
+// Function for doing the pow of a symboltable entry struct regardless of whether they come from the symbol table or not and
+// regardless of their type
 struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2){
 
     struct symbolTableEntry result;
@@ -995,6 +1037,7 @@ struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
 
 }
 
+// Function for evaluating boolean expressions, passing also the type of comparison: >, <, =
 bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  struct symbolTableEntry id2, char operator){
 
     struct symbolTableEntry result;

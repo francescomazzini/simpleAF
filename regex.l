@@ -26,19 +26,12 @@ date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}
 [ ] {/*skip blanks*/}
 
 if {return IF;}
-then {return THEN;}
 else {return ELSE;}
 rad {return RAD;}
 log {return LOG;}
 mod {return MOD;}
 pow {return POW;}
 while {return WHILE;}
-
-for {return FOR;}
-times {return TIMES;}
-from {return FROM;}
-increasing {return INCREASING;}
-decreasing {return DECREASING;}
 end {return END;}
 symbtb {return SYMBTB;}
 sym {return SYM;}
@@ -84,6 +77,7 @@ OPEN {return OPEN;}
 
 %%
 
+// Function for removing the apices from the strings so to keep just their actual value
 char* removeFirstAndLasChar(const char* str) {
     size_t len = strlen(str);
     
