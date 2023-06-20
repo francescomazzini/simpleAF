@@ -160,7 +160,15 @@ prog  : line  ';' '\n' prog
 //each line is a statement and there are different things that can be executed 
 line  :  END  '\n'       {exit(0);}                                                         //end of the program
       | SYMBTB          { printSymbolTableEntry(&SYMBOL_TABLE); }                           //print the symbol table
-      | SYM ID          { printSingleSymbolTableEntry(lookUpTable(&SYMBOL_TABLE, $2)); }    //print the symbol table entry of a specific ID
+      | SYM ID          { 
+                            struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, $2);
+                            if(entry == NULL) {
+                                printf("ERROR! ID %s not found", $2);
+                                exit(1);
+                            }
+                             printSingleSymbolTableEntry(entry); 
+                        }    //print the symbol table entry of a specific ID
+                        
     //it represents a general expression of any type
       | exprGeneral         {                                                               
                                 if(strcmp($1.type, "STRING") == 0)
