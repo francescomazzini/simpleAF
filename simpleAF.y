@@ -503,7 +503,7 @@ struct symbolTableEntry* createFirstEntryTable(char* id, void* value, char* type
     first->value = tempValue;
 
   }else{
-    printf("error type");
+    yyerror("TYPE ERROR");
   }
 
 strcpy(first->type, type);
@@ -562,7 +562,7 @@ void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
    printf("Value: %s\n", symbol->value.stringValue);
 
   }else{
-    printf("error type");
+    yyerror("TYPE ERROR");
   }  
 }
 
@@ -611,8 +611,7 @@ struct symbolTableEntry* lookUpTable(struct symbolTable* table, char* id){
 void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, struct symbolTableEntry value,char* id, bool is_open){
 
     if(strcmp(value.type, supposedType) != 0) {
-        printf("Error type");
-        exit(1);
+        yyerror("ERROR TYPE");
     } else {
 
         struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
@@ -645,8 +644,7 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  str
     }
     
     if(strcmp(entry->type, value.type) != 0) {
-        printf("TYPE ERROR");
-        exit(1);
+        yyerror("TYPE ERROR");
     }
 
     if(strcmp(value.type, "REAL")==0){
@@ -655,7 +653,7 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  str
         strncpy(entry->value.stringValue, (char*)value.value.stringValue,NAME_MAX-1);
         entry->value.stringValue[NAME_MAX-1]='\0';
     }else{
-        printf("error type");
+        yyerror("TYPE ERROR");
     }
 
 }
@@ -700,8 +698,7 @@ void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* 
     }
     
     if(strcmp(entry->type, actualType) != 0) {
-        printf("TYPE ERROR");
-        exit(1);
+        yyerror("TYPE ERROR");
     }
 
     if(strcmp(actualType, "REAL")==0){
@@ -711,7 +708,7 @@ void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* 
     }else if (strcmp(actualType, "FRACTION")==0){
         return (void*)&(entry->value.stringValue);
     }else{
-        printf("error type");
+        yyerror("TYPE ERROR");
     }
 
     return NULL;
@@ -735,7 +732,7 @@ void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id) {
     }else if (strcmp(entry->type, "FRACTION")==0){
         return (void*)&(entry->value.stringValue);
     }else{
-        printf("error type");
+        yyerror("TYPE ERROR");
     }
 
     return NULL;
@@ -770,6 +767,10 @@ void copyIDFromName (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* i
 void copyIDFromFraction (struct symbolTable SYMBOL_TABLE, struct symbolTableEntry* id1, char* id2 ) {
 
     strcpy(id1->type, "FRACTION");
+
+    if(stringToNumberEnd(id2) == 0)
+        yyerror("A FRACTION WITH DENUMERATOR EQUAL TO 0 IS NOT POSSIBLE");
+
     strcpy(id1->value.stringValue, id2);
 
 }
@@ -826,8 +827,7 @@ struct symbolTableEntry sumID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
         strcpy(result.type, "REAL");
         result.value.floatValue = val1 + val2;
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -842,8 +842,7 @@ struct symbolTableEntry subID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
     strcpy(result.type, "");
 
     if(strcmp(id1.type, "STRING") == 0 && strcmp(id2.type, "STRING") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "FRACTION") == 0 && strcmp(id2.type, "FRACTION") == 0) {
         char* val1 = id1.value.stringValue;
         char* val2 = id2.value.stringValue;
@@ -855,8 +854,7 @@ struct symbolTableEntry subID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
         strcpy(result.type, "REAL");
         result.value.floatValue = val1 - val2;
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -871,8 +869,7 @@ struct symbolTableEntry mulID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
     strcpy(result.type, "");
 
     if(strcmp(id1.type, "STRING") == 0 && strcmp(id2.type, "STRING") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "FRACTION") == 0 && strcmp(id2.type, "FRACTION") == 0) {
         char* val1 = id1.value.stringValue;
         char* val2 = id2.value.stringValue;
@@ -894,8 +891,7 @@ struct symbolTableEntry mulID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
         strcpy(result.type, "STRING");
         strcpy(result.value.stringValue, multiplyStrings(val2, val1));
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -910,8 +906,7 @@ struct symbolTableEntry divID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
     strcpy(result.type, "");
 
     if(strcmp(id1.type, "STRING") == 0 && strcmp(id2.type, "STRING") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "FRACTION") == 0 && strcmp(id2.type, "FRACTION") == 0) {
         char* val1 = id1.value.stringValue;
         char* val2 = id2.value.stringValue;
@@ -923,12 +918,11 @@ struct symbolTableEntry divID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
 
         if(val2 == 0)
             yyerror("DIVISION BY 0 IS NOT POSSIBLE");
-            
+
         strcpy(result.type, "REAL");
         result.value.floatValue = val1 / val2;
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -943,18 +937,15 @@ struct symbolTableEntry sqrtID(struct symbolTable SYMBOL_TABLE,  struct symbolTa
     strcpy(result.type, "");
 
     if(strcmp(id1.type, "STRING") == 0 ) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "FRACTION") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "REAL") == 0 ) {
         float val1 = id1.value.floatValue;
         strcpy(result.type, "REAL");
         result.value.floatValue = sqrt(val1);
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -969,18 +960,15 @@ struct symbolTableEntry logID(struct symbolTable SYMBOL_TABLE,  struct symbolTab
     strcpy(result.type, "");
 
     if(strcmp(id1.type, "STRING") == 0 ) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "FRACTION") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "REAL") == 0 ) {
         float val1 = id1.value.floatValue;
         strcpy(result.type, "REAL");
         result.value.floatValue = log(val1)/log(10);
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -995,19 +983,16 @@ struct symbolTableEntry modID(struct symbolTable SYMBOL_TABLE,  struct symbolTab
     strcpy(result.type, "");
 
     if(strcmp(id1.type, "STRING") == 0  && strcmp(id2.type, "STRING") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "FRACTION") == 0  && strcmp(id2.type, "FRACTION") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "REAL") == 0  && strcmp(id2.type, "REAL") == 0) {
         float val1 = id1.value.floatValue;
         float val2 = id2.value.floatValue;
         strcpy(result.type, "REAL");
         result.value.floatValue = (int)val1 % (int)val2;
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -1022,19 +1007,16 @@ struct symbolTableEntry powID (struct symbolTable SYMBOL_TABLE,  struct symbolTa
     strcpy(result.type, "");
 
     if(strcmp(id1.type, "STRING") == 0  && strcmp(id2.type, "STRING") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "FRACTION") == 0  && strcmp(id2.type, "FRACTION") == 0) {
-        printf("INCORRECT OPERATION FOR THIS TYPE");
-        exit(1);
+        yyerror("INCORRECT OPERATION FOR THIS TYPE");
     } else if (strcmp(id1.type, "REAL") == 0  && strcmp(id2.type, "REAL") == 0) {
         float val1 = id1.value.floatValue;
         float val2 = id2.value.floatValue;
         strcpy(result.type, "REAL");
         result.value.floatValue = pow(val1,val2);
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return result;
@@ -1051,8 +1033,7 @@ bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  str
         if(operator == '=')
             return strcmp(id1.value.stringValue, id2.value.stringValue) == 0;
         else {
-            printf("INCORRECT OPERATION FOR THIS TYPE");
-            exit(1);
+            yyerror("INCORRECT OPERATION FOR THIS TYPE");
         }
     } else if (strcmp(id1.type, "FRACTION") == 0  && strcmp(id2.type, "FRACTION") == 0) {
         switch(operator) {
@@ -1063,8 +1044,7 @@ bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  str
             case '=':
                 return strcmp(simplifyFraction( stringToNumberStart( id1.value.stringValue), stringToNumberEnd(id1.value.stringValue)), simplifyFraction( stringToNumberStart( id2.value.stringValue), stringToNumberEnd(id2.value.stringValue))) == 0;
             default:
-                printf("INCORRECT OPERATION FOR THIS TYPE");
-                exit(1);
+                yyerror("INCORRECT OPERATION FOR THIS TYPE");
         }        
     } else if (strcmp(id1.type, "REAL") == 0  && strcmp(id2.type, "REAL") == 0) {
         switch(operator) {
@@ -1075,12 +1055,10 @@ bool boolID (struct symbolTable SYMBOL_TABLE,  struct symbolTableEntry id1,  str
             case '=':
                 return (fabs(id1.value.floatValue - id2.value.floatValue)) < 0.0001;
             default:
-                printf("INCORRECT OPERATION FOR THIS TYPE");
-                exit(1);
+                yyerror("INCORRECT OPERATION FOR THIS TYPE");
         } 
     } else {
-        printf("MISMATCH TYPE ERROR");
-        exit(1);
+        yyerror("MISMATCH TYPE ERROR");
     }
     
     return 0;
