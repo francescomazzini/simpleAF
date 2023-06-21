@@ -17,10 +17,6 @@ ID {letter}({letter}|{digit})*
 FRACTION {INT}\/{INT}
 TYPE (REAL)|(STRING)|(FRACTION)
 
-date {digit}{digit}\/{digit}{digit}\/{digit}{digit}{digit}{digit}{{ }{[bC]|[aC]}}?
-
-
-
 %%
 
 [ ] {/*skip blanks*/}
