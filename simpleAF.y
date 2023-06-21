@@ -11,7 +11,10 @@
 
 void yyerror(const char *s)
 {
-    fprintf(stderr, "%s\n", s);
+    if(!strcmp(s, "") == 0)
+        fprintf(stderr, ">> %s\n", s);
+    else
+        fprintf(stderr, ">> SYNTAX ERROR\n");
     exit(1);
 }
 
@@ -163,20 +166,20 @@ line  :  END  '\n'       {exit(0);}                                             
       | SYM ID          { 
                             struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, $2);
                             if(entry == NULL) {
-                                printf("ERROR! ID %s not found", $2);
+                                printf(">> ERROR! ID %s not found\n", $2);
                                 exit(1);
                             }
                              printSingleSymbolTableEntry(entry); 
                         }    //print the symbol table entry of a specific ID
-                        
+
     //it represents a general expression of any type
       | exprGeneral         {                                                               
                                 if(strcmp($1.type, "STRING") == 0)
-                                    printf("Value: \"%s\"", $1.value.stringValue);
+                                    printf(">> Value: \"%s\"\n", $1.value.stringValue);
                                 else if (strcmp($1.type, "FRACTION") == 0)
-                                    printf("Value: %s", $1.value.stringValue);
+                                    printf(">> Value: %s\n", $1.value.stringValue);
                                 else if (strcmp($1.type, "REAL") == 0) {
-                                    printf("Value: %f", $1.value.floatValue);
+                                    printf(">> Value: %f\n", $1.value.floatValue);
                                 }
                             }
     //declaration of an ID as OPEN variable
@@ -203,14 +206,14 @@ line  :  END  '\n'       {exit(0);}                                             
                             updateValueWithTypeChecking(SYMBOL_TABLE, $1, $9);
                         }
                     }
-      | BOOLEAN {printf("Boolean recognized\n"); exit(0);}
+      | BOOLEAN {printf(">> Boolean recognized\n"); exit(0);}
     //boolean expression
-      | exprBool {printf("Boolean is: \"%s\"\n", $1 ? "true" : "false");} 
+      | exprBool {printf(">> Boolean is: \"%s\"\n", $1 ? "true" : "false");} 
       | IF  '(' exprBool ')' '{' { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL + 1; }  '\n' 
-        prog  elseStatement              { printf("If condition is: \"%s\"\n", $3 ? "true" : "false");} 
+        prog  elseStatement              { printf(">> If condition is: \"%s\"\n", $3 ? "true" : "false");} 
 
       | WHILE '(' exprBool ')' '{'  { GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL + 1; } '\n' 
-        prog '}'                      { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; printf("While condition is: \"%s\"\n", $3 ? "true" : "false");}      
+        prog '}'                      { removeBasedOnScopeLevel(SYMBOL_TABLE, GLOBAL_SCOPE_LEVEL); GLOBAL_SCOPE_LEVEL = GLOBAL_SCOPE_LEVEL - 1; printf(">> While condition is: \"%s\"\n", $3 ? "true" : "false");}      
       ;
 
     //it was done with a separate statement because since there was code already at the opening of the first curly bracket,
@@ -286,7 +289,7 @@ int stringToNumberStart(const char* str) {
         if (str[i] >= '0' && str[i] <= '9') {
             number = number * 10 + (str[i] - '0');
         } else {
-            printf("Invalid character '%c'. Ignoring.\n", str[i]);
+            printf(">> Invalid character '%c'. Ignoring.\n", str[i]);
         }
     }
 
@@ -306,7 +309,7 @@ int stringToNumberEnd(const char* str) {
         if (str[i] >= '0' && str[i] <= '9') {
             number = (str[i] - '0') * (int)pow(10, length - 1 - i) + number;
         } else {
-            printf("Invalid character '%c'. Ignoring.\n", str[i]);
+            printf(">> Invalid character '%c'. Ignoring.\n", str[i]);
         }
     }
 
@@ -321,7 +324,7 @@ char* numbersToString(int number1, int number2) {
     // Allocate memory for the string
     char* str = (char*)malloc((size + 1) * sizeof(char));
     if (str == NULL) {
-        printf("Memory allocation failed.\n");
+        printf(">> Memory allocation failed.\n");
         return NULL;
     }
 
@@ -421,7 +424,7 @@ char* concatenateStrings(const char* str1, const char* str2) {
     
     // Check if memory allocation was successful
     if (result == NULL) {
-        printf("Memory allocation failed.\n");
+        printf(">> Memory allocation failed.\n");
         return NULL;
     }
     
@@ -536,7 +539,7 @@ void addEntryTable(struct symbolTableEntry* list,char* id, void* value, char* ty
   while(last->next != NULL) {
     if (strcmp(last->id, id)==0)
     {
-      printf("already existing id \n");
+      printf(">> already existing id \n");
       return;
 
     }
@@ -558,7 +561,7 @@ void addSymbolTable(struct symbolTable* table,char* id, void* value, char* type,
 
 // Function for printing a symbol table entry
 void printSingleSymbolTableEntry(struct symbolTableEntry* symbol){
-    printf("Id: %s\n", symbol->id);
+    printf(">> Id: %s\n", symbol->id);
   printf("Type: %s\n", symbol->type);
   printf("Scope level: %d\n", symbol->scope_level);
   printf("It is an open variable: %s\n", symbol->is_open ? "true" : "false");
@@ -626,7 +629,7 @@ void addWithTypeChecking(struct symbolTable SYMBOL_TABLE, char* supposedType, st
 
         if(entry != NULL) {
 
-            printf("ERROR! ID %s is already declared", id);
+            printf(">> ERROR! ID %s is already declared\n", id);
             exit(1);
         
         } else {
@@ -647,7 +650,7 @@ void updateValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id,  str
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
 
     if(entry == NULL) {
-        printf("ERROR! ID %s not found", id);
+        printf(">> ERROR! ID %s not found\n", id);
         exit(1);
     }
     
@@ -701,7 +704,7 @@ void* getValueWithTypeChecking (struct symbolTable SYMBOL_TABLE,char* id, char* 
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
 
     if(entry == NULL) {
-        printf("ERROR! ID %s not found", id);
+        printf(">> ERROR! ID %s not found\n", id);
         exit(1);
     }
     
@@ -729,7 +732,7 @@ void* getValueWithoutTypeChecking (struct symbolTable SYMBOL_TABLE,char* id) {
     struct symbolTableEntry* entry = lookUpTable(&SYMBOL_TABLE, id);
 
     if(entry == NULL) {
-        printf("ERROR! ID %s not found", id);
+        printf(">> ERROR! ID %s not found\n", id);
         exit(1);
     }
 
